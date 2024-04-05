@@ -76,6 +76,18 @@ export default function TextForm(props) {
         window.speechSynthesis.speak(msg);
     }
 
+    const handleRasClick = () => {
+        // console.log("RemoveAllSpaces was clicked" + text);
+        let newText = text.replace(/\s+/g, '')
+        setText(newText)
+    }
+
+    const handleResClick = () => {
+        // console.log("RemoveExtraSpaces was clicked" + text);
+        let newText = text.split(/[ ]+/)
+        setText(newText.join(" "))
+    }
+
     const handleOnClick = (event) => {
         // console.log("On Change was clicked");
         let newText = event.target.value;
@@ -92,15 +104,17 @@ export default function TextForm(props) {
                     <label htmlFor="text" className="form-label">Enter something into the box....</label>
                     <textarea className="form-control" id="text" rows="10" value={text} onChange={handleOnClick}></textarea>
                 </div>
-                <button className="btn btn-primary m-1" onClick={handleUpClick}>UpperCase</button>
-                <button className="btn btn-primary m-1" onClick={handleLoClick}>LowerCase</button>
-                <button className="btn btn-primary m-1" onClick={handleInClick}>InverseCase</button>
-                <button className="btn btn-primary m-1" onClick={handleUcaClick}>UpperCamelCase</button>
-                <button className="btn btn-primary m-1" onClick={handleLcaClick}>LowerCamelCase</button>
-                <button className="btn btn-primary m-1" onClick={handleCoClick}>Copy</button>
-                <button className="btn btn-primary m-1" onClick={handlePaClick}>Paste</button>
-                <button className="btn btn-primary m-1" onClick={handleTtsClick}>Text-to-Speech</button>
-                <button className="btn btn-primary m-1" onClick={handleCtClick}>ClearText</button>
+                <button className="btn btn-primary mx-3 my-3" onClick={handleUpClick}>Upper Case</button>
+                <button className="btn btn-primary mx-3 my-3" onClick={handleLoClick}>Lower Case</button>
+                <button className="btn btn-primary mx-3 my-3" onClick={handleInClick}>Inverse Case</button>
+                <button className="btn btn-primary mx-3 my-3" onClick={handleUcaClick}>Upper Camel Case</button>
+                <button className="btn btn-primary mx-3 my-3" onClick={handleLcaClick}>Lower Camel Case</button>
+                <button className="btn btn-primary mx-3 my-3" onClick={handleRasClick}>Remove All Spaces</button>
+                <button className="btn btn-primary mx-3 my-3" onClick={handleResClick}>Remove Extra Spaces</button>
+                <button className="btn btn-primary mx-3 my-3" onClick={handleCoClick}>Copy</button>
+                <button className="btn btn-primary mx-3 my-3" onClick={handlePaClick}>Paste</button>
+                <button className="btn btn-primary mx-3 my-3" onClick={handleTtsClick}>Text to Speech</button>
+                <button className="btn btn-primary mx-3 my-3" onClick={handleCtClick}>Clear Text</button>
                 
             </div>
             <div className='container my-3'>    
