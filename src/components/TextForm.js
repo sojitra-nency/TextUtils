@@ -102,7 +102,7 @@ export default function TextForm(props) {
                 <h1>{props.heading}</h1>
                 <div className="mb-3">
                     <label htmlFor="text" className="form-label">Enter something into the box....</label>
-                    <textarea className="form-control" id="text" rows="10" value={text} onChange={handleOnClick}></textarea>
+                    <textarea className="form-control" id="text" rows="10" value={text} onChange={handleOnClick} ></textarea>
                 </div>
                 <button className="btn btn-primary mx-3 my-3" onClick={handleUpClick}>Upper Case</button>
                 <button className="btn btn-primary mx-3 my-3" onClick={handleLoClick}>Lower Case</button>
@@ -122,7 +122,7 @@ export default function TextForm(props) {
                 <p>{text.split(".").length} sentences, {text.split(" ").length} words and {text.length} characters</p>
                 <p>{0.008 * text.split(" ").length} minutes read.</p>
                 <h2>Preview</h2>
-                <p>{text}</p>
+                <p>{text.length>0 ? text : "Enter something into textbox to preview it here..."}</p>
             </div>
         </>
     )
