@@ -26,11 +26,23 @@ function App() {
       document.body.style.backgroundColor = '#30494F';
       document.body.style.color = '#E0E0E0';
       showAlert('Dark Mode has been enabled', 'success');
-    }else{
+      document.title = 'TextUtils - Dark Mode';
+      
+      // To change the title of the page after every 2 seconds and 1.5 seconds to make it look lke blinking
+
+      setInterval(() => {
+        document.title = 'TextUtils is Amazing';
+      }, 2000);
+      setInterval(() => {
+        document.title = 'Install TextUtils Now';
+      }, 1500);
+    }
+    else{
       setMode('light');
       document.body.style.backgroundColor = '#E0E0E0';  
       document.body.style.color = '#30494F';
       showAlert('Light Mode has been enabled', 'success');
+      document.title = 'TextUtils - Light Mode';
     }
   }
 
