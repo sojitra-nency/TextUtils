@@ -111,9 +111,9 @@ export default function TextForm(props) {
                 <button className="btn btn-primary mx-3 my-3" onClick={handleLcaClick}>Lower Camel Case</button>
                 <button className="btn btn-primary mx-3 my-3" onClick={handleRasClick}>Remove All Spaces</button>
                 <button className="btn btn-primary mx-3 my-3" onClick={handleResClick}>Remove Extra Spaces</button>
+                <button className="btn btn-primary mx-3 my-3" onClick={handleTtsClick}>Text to Speech</button>
                 <button className="btn btn-primary mx-3 my-3" onClick={handleCoClick}>Copy</button>
                 <button className="btn btn-primary mx-3 my-3" onClick={handlePaClick}>Paste</button>
-                <button className="btn btn-primary mx-3 my-3" onClick={handleTtsClick}>Text to Speech</button>
                 <button className="btn btn-primary mx-3 my-3" onClick={handleCtClick}>Clear Text</button>
                 
             </div>
