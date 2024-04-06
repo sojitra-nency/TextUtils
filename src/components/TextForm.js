@@ -100,6 +100,34 @@ export default function TextForm(props) {
         props.showAlert("Removed Extra Spaces", "success")
     }
 
+    const handleScClick = () => {
+        // console.log("SentenceCase was clicked: ", text);
+        if (!text) {
+            props.showAlert("Text is empty", "warning");
+            return;
+        }
+    
+        let newText = '';
+        let updatedText = text.trim();
+        if (updatedText.charAt(updatedText.length - 1) === ".") {
+            updatedText = updatedText.slice(0, -1);
+        }
+    
+        let Sentences = updatedText.split(".");
+        for (let i = 0; i < Sentences.length; i++) {
+            let sentence = Sentences[i].trim();
+            if (sentence) {
+                if (i > 0) {
+                    newText += ". ";
+                }
+                newText += sentence.charAt(0).toUpperCase() + sentence.slice(1).toLowerCase();
+            }
+        }
+        setText(newText);
+        props.showAlert("Converted to Sentence Case", "success");
+    }
+    
+
     const handleOnClick = (event) => {
         // console.log("On Change was clicked");
         let newText = event.target.value;
@@ -122,6 +150,7 @@ export default function TextForm(props) {
                 <button className="btn btn-primary mx-3 my-3" onClick={handleInClick}>Inverse Case</button>
                 <button className="btn btn-primary mx-3 my-3" onClick={handleUcaClick}>Upper Camel Case</button>
                 <button className="btn btn-primary mx-3 my-3" onClick={handleLcaClick}>Lower Camel Case</button>
+                <button className="btn btn-primary mx-3 my-3" onClick={handleScClick}>Sentence Case</button>
                 <button className="btn btn-primary mx-3 my-3" onClick={handleRasClick}>Remove All Spaces</button>
                 <button className="btn btn-primary mx-3 my-3" onClick={handleResClick}>Remove Extra Spaces</button>
                 <button className="btn btn-primary mx-3 my-3" onClick={handleTtsClick}>Text to Speech</button>

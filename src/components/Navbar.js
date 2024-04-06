@@ -4,6 +4,9 @@ import React from 'react'
 import PropTypes from 'prop-types'
 
 export default function Navbar(props) {
+    const submitForm = (e) => {
+        e.preventDefault();
+    }
   return (
     <div>
       <nav className={`navbar navbar-expand-lg bg-dark navbar-dark`}>
@@ -34,7 +37,7 @@ export default function Navbar(props) {
                 
             </ul>
             
-            <form className="d-flex" role="search">
+            <form className="d-flex" role="search" onSubmit={submitForm}>
                 <input className="form-control mx-2" type="search" placeholder="Search" aria-label="Search"/>
                 <button className="btn btn-primary mx-3" type="submit">Search</button>
             </form>
