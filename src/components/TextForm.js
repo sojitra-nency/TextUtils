@@ -6,12 +6,14 @@ export default function TextForm(props) {
         // console.log("Uppercase was clicked" + text);
         let newText = text.toUpperCase();
         setText(newText)
+        props.showAlert("Converted to Uppercase", "success")
     }
 
     const handleLoClick = () => {
         // console.log("Lowercase was clicked" + text);
         let newText = text.toLowerCase();
         setText(newText)
+        props.showAlert("Converted to Lowercase", "success")
     }
 
     const handleInClick = () => {
@@ -26,6 +28,7 @@ export default function TextForm(props) {
             }
         }
         setText(newText)
+        props.showAlert("Converted to Inversecase", "success")
     }
 
     const handleUcaClick = () => {
@@ -37,10 +40,12 @@ export default function TextForm(props) {
             newText += word[0].toUpperCase() + word.slice(1).toLowerCase()
         }
         setText(newText)
+        props.showAlert("Converted to Upper Camelcase", "success")
     }
 
     const handleLcaClick = () => {
         // console.log("LowerCamelcase was clicked" + text);
+        
         let newText = ''
         let Words = text.split(" ")
         for(let i = 0; i < Words.length; i++){
@@ -49,17 +54,20 @@ export default function TextForm(props) {
         }
         newText = newText[0].toLowerCase() + newText.slice(1)
         setText(newText)
+        props.showAlert("Converted to Lower Camelcase", "success")
     }
 
     const handleCtClick = () => {
         // console.log("ClearText was clicked" + text);
         let newText = ''
         setText(newText)
+        props.showAlert("Text Cleared", "success")
     }   
 
     const handleCoClick = () => {
         // console.log("Copy was clicked" + text);
         navigator.clipboard.writeText(text)
+        props.showAlert("Text Copied", "success")
     }
 
     const handlePaClick = () => {
@@ -68,30 +76,35 @@ export default function TextForm(props) {
         .then(text => {
             setText(text)
         })
+        props.showAlert("Text Pasted", "success")
     }
 
     const handleTtsClick = () => {
         // console.log("Text-to-Speech was clicked" + text);
         let msg = new SpeechSynthesisUtterance(text);
         window.speechSynthesis.speak(msg);
+        props.showAlert("Text-to-Speech", "success")
     }
 
     const handleRasClick = () => {
         // console.log("RemoveAllSpaces was clicked" + text);
         let newText = text.replace(/\s+/g, '')
         setText(newText)
+        props.showAlert("Removed All Spaces", "success")
     }
 
     const handleResClick = () => {
         // console.log("RemoveExtraSpaces was clicked" + text);
         let newText = text.split(/[ ]+/)
         setText(newText.join(" "))
+        props.showAlert("Removed Extra Spaces", "success")
     }
 
     const handleOnClick = (event) => {
         // console.log("On Change was clicked");
         let newText = event.target.value;
         setText(newText)
+        props.showAlert("Text Changed", "success")
     }
 
     const [text, setText] = useState('Enter text here');
