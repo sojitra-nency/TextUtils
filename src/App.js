@@ -24,8 +24,8 @@ function App() {
   const toggleMode = () => {
     if(mode === 'light'){
       setMode('dark');  
-      document.body.style.backgroundColor = '#30494F';
-      document.body.style.color = '#E0E0E0';
+      document.body.style.backgroundColor = '#163563';
+      document.body.style.color = 'white';
       showAlert('Dark Mode has been enabled', 'success');
       // document.title = 'TextUtils - Dark Mode';
       
@@ -40,8 +40,8 @@ function App() {
     }
     else{
       setMode('light');
-      document.body.style.backgroundColor = '#E0E0E0';  
-      document.body.style.color = '#30494F';
+      document.body.style.backgroundColor = 'white';  
+      document.body.style.color = '#163563';
       showAlert('Light Mode has been enabled', 'success');
       // document.title = 'TextUtils - Light Mode';
     }
@@ -62,7 +62,7 @@ function App() {
         <Alert alert={alert} />
         <Routes>
           <Route exact path="/" element={<TextForm heading='TextUtils :)' mode={mode} showAlert={showAlert} />} />
-          <Route exact path="/about" element={<About />} />
+          <Route exact path="/about" element={<About mode={mode}/>} />
         </Routes>
       </Router>
 </>

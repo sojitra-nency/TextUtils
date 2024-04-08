@@ -38,11 +38,11 @@ export default function Navbar(props) {
                 
             </ul>
             
-            <form className="d-flex" role="search" onSubmit={submitForm}>
+            {/* <form className="d-flex" role="search" onSubmit={submitForm}>
                 <input className="form-control mx-2" type="search" placeholder="Search" aria-label="Search"/>
                 <button className="btn btn-primary mx-3" type="submit">Search</button>
-            </form>
-            <div className={`form-check form-switch text-${props.mode === 'light'? 'dark':'light'}`}>
+            </form> */}
+            <div className={`form-check form-switch text-${props.mode === 'light'? 'white':'light'}`}>
                 <input className="form-check-input" onClick={props.toggleMode} type="checkbox" role="switch" id="flexSwitchCheckDefault"/>
                 <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Mode</label>
             </div>
