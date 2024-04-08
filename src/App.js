@@ -21,14 +21,43 @@ function App() {
     }, 1500);
   }
 
-  const toggleMode = () => {
+// to remove the body class to avoid the color palette to be applied on the body
+
+  const removeBodyClasses = () => {
+    document.body.classList.remove('bg-light');
+    document.body.classList.remove('bg-dark');
+    document.body.classList.remove('bg-warning');
+    document.body.classList.remove('bg-danger');
+    document.body.classList.remove('bg-success');
+    document.body.classList.remove('bg-primary');
+    document.body.classList.remove('bg-secondary');
+    document.body.classList.remove('bg-info');  
+  }
+
+  const toggleMode = (cls) => {
     if(mode === 'light'){
+
+      //for color palette - custom backgorund color
+      removeBodyClasses();
+      console.log(cls)
+      document.body.classList.add('bg-'+cls);
+
+
       setMode('dark');  
       document.body.style.backgroundColor = '#163563';
       document.body.style.color = 'white';
       showAlert('Dark Mode has been enabled', 'success');
       // document.title = 'TextUtils - Dark Mode';
       
+      
+    }
+    else{
+      setMode('light');
+      document.body.style.backgroundColor = 'white';  
+      document.body.style.color = '#163563';
+      showAlert('Light Mode has been enabled', 'success');
+      // document.title = 'TextUtils - Light Mode';
+
       // To change the title of the page after every 2 seconds and 1.5 seconds to make it look lke blinking
 
       // setInterval(() => {
@@ -37,13 +66,6 @@ function App() {
       // setInterval(() => {
       //   document.title = 'Install TextUtils Now';
       // }, 1500);
-    }
-    else{
-      setMode('light');
-      document.body.style.backgroundColor = 'white';  
-      document.body.style.color = '#163563';
-      showAlert('Light Mode has been enabled', 'success');
-      // document.title = 'TextUtils - Light Mode';
     }
   }
 
