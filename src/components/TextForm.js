@@ -113,7 +113,7 @@ export default function TextForm(props) {
             updatedText = updatedText.slice(0, -1);
         }
     
-        let Sentences = updatedText.split(".");
+        let Sentences = updatedText.split(/[.?]\s*(?=\s|$)|\n/);
         for (let i = 0; i < Sentences.length; i++) {
             let sentence = Sentences[i].trim();
             if (sentence) {
@@ -123,7 +123,7 @@ export default function TextForm(props) {
                 newText += sentence.charAt(0).toUpperCase() + sentence.slice(1).toLowerCase();
             }
         }
-        setText(newText);
+        setText(newText + '.');
         props.showAlert("Converted to Sentence Case", "success");
     }
     
@@ -161,7 +161,7 @@ export default function TextForm(props) {
             </div>
             <div className='container my-3'>    
                 <h2>Your Text Summary</h2>
-                <p>{text.split(".").filter((element)=>{return element.length!==0}).length} sentences, {text.split(" ").filter((element)=>{return element.length!==0}).length} words and {text.length} characters</p>
+                <p>{text.split(/[.?]\s*(?=\s|$)|\n/).filter((element)=>{return element.length!==0}).length} sentences, {text.split(/\s+/).filter((element)=>{return element.length!==0}).length} words and {text.length} characters</p>
                 <p>{0.008 * text.split(" ").filter((element)=>{return element.length!==0}).length} minutes read.</p>
                 <h2>Preview</h2>
                 <p>{text.length>0 ? text : "Nothing to Preview :("}</p>

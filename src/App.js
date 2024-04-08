@@ -23,24 +23,25 @@ function App() {
 
 // to remove the body class to avoid the color palette to be applied on the body
 
-  const removeBodyClasses = () => {
-    document.body.classList.remove('bg-light');
-    document.body.classList.remove('bg-dark');
-    document.body.classList.remove('bg-warning');
-    document.body.classList.remove('bg-danger');
-    document.body.classList.remove('bg-success');
-    document.body.classList.remove('bg-primary');
-    document.body.classList.remove('bg-secondary');
-    document.body.classList.remove('bg-info');  
-  }
+  // const removeBodyClasses = () => {
+  //   document.body.classList.remove('bg-light');
+  //   document.body.classList.remove('bg-dark');
+  //   document.body.classList.remove('bg-warning');
+  //   document.body.classList.remove('bg-danger');
+  //   document.body.classList.remove('bg-success');
+  //   document.body.classList.remove('bg-primary');
+  //   document.body.classList.remove('bg-secondary');
+  //   document.body.classList.remove('bg-info');  
+  // }
 
   const toggleMode = (cls) => {
     if(mode === 'light'){
 
       //for color palette - custom backgorund color
-      removeBodyClasses();
-      console.log(cls)
-      document.body.classList.add('bg-'+cls);
+
+      // removeBodyClasses();
+      // console.log(cls)
+      // document.body.classList.add('bg-'+cls);
 
 
       setMode('dark');  
