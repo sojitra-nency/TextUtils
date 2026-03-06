@@ -1,0 +1,120 @@
+# TextUtils — unified compose file with profiles.
+#
+# Profiles:
+#   dev   development stack  (hot reload, source volumes)
+#   prod  production stack   (multi-stage builds, nginx)
+#
+# Usage:
+#   docker compose --profile dev up --build     # dev
+#   docker compose --profile prod up --build    # prod
+#
+# Or via npm:
+#   npm run docker:dev    # dev stack
+#   npm run docker:up     # prod stack
+
+services:
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # DEV  —  profile: textutils-dev
+  # ══════════════════════════════════════════════════════════════════════════
+
+  backend-dev:
+    profiles: ["dev"]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: textutils-backend-dev
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app      # mount source — uvicorn --reload picks up changes
+      - /app/.venv          # anonymous volume keeps host .venv out of the container
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=true
+      - ALLOWED_ORIGINS=["http://localhost:3000","http://127.0.0.1:3000"]
+    networks:
+      - textutils-net
+
+  frontend-dev:
+    profiles: ["dev"]
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: textutils-frontend-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/src:/app/src          # mount src — CRA hot-reloads on change
+      - ./frontend/public:/app/public    # mount public assets
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+      - CHOKIDAR_USEPOLLING=true
+      - WDS_SOCKET_PORT=0
+    depends_on:
+      - backend-dev
+    networks:
+      - textutils-net
+
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # PROD  —  profile: textutils-prod
+  # ══════════════════════════════════════════════════════════════════════════
+
+  backend-prod:
+    profiles: ["prod"]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: textutils-backend-prod
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=false
+      - ALLOWED_ORIGINS=["http://localhost:3000","http://frontend-prod:80"]
+    networks:
+      - textutils-net
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  frontend-prod:
+    profiles: ["prod"]
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: runtime
+      args:
+        REACT_APP_API_URL: http://localhost:8000
+    container_name: textutils-frontend-prod
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      backend-prod:
+        condition: service_healthy
+    networks:
+      - textutils-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:80"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+
+# ── Shared network ────────────────────────────────────────────────────────────
+networks:
+  textutils-net:
+    driver: bridge

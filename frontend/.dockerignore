@@ -1,0 +1,21 @@
+# frontend/.dockerignore
+# Exclude everything that would slow the build or pollute the image
+
+node_modules/
+build/
+.git/
+.gitignore
+*.md
+
+# Local env files (secrets should be passed at runtime)
+.env.local
+.env.*.local
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Test artefacts
+coverage/
