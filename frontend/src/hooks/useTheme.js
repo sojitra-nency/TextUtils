@@ -1,5 +1,5 @@
 /**
- * useTheme — manages light/dark mode toggle.
+ * useTheme — manages light/dark mode toggle via a CSS class on <body>.
  *
  * Usage:
  *   const { mode, toggleMode } = useTheme(showAlert);
@@ -12,14 +12,12 @@ export function useTheme(showAlert) {
     const toggleMode = () => {
         if (mode === 'light') {
             setMode('dark');
-            document.body.style.backgroundColor = '#163563';
-            document.body.style.color = 'white';
-            showAlert('Dark Mode has been enabled', 'success');
+            document.body.classList.add('dark');
+            showAlert('Dark mode enabled', 'success');
         } else {
             setMode('light');
-            document.body.style.backgroundColor = 'white';
-            document.body.style.color = '#163563';
-            showAlert('Light Mode has been enabled', 'success');
+            document.body.classList.remove('dark');
+            showAlert('Light mode enabled', 'success');
         }
     };
 

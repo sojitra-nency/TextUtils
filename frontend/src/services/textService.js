@@ -42,6 +42,9 @@ export const toInverseCase = (text) => post('/api/v1/text/inversecase', { text }
 /** Convert text to Sentence case */
 export const toSentenceCase = (text) => post('/api/v1/text/sentencecase', { text });
 
+/** Convert text to Title Case */
+export const toTitleCase = (text) => post('/api/v1/text/titlecase', { text });
+
 /** Convert text to UpperCamelCase (PascalCase) */
 export const toUpperCamelCase = (text) => post('/api/v1/text/upper-camel-case', { text });
 
@@ -53,6 +56,9 @@ export const removeExtraSpaces = (text) => post('/api/v1/text/remove-extra-space
 
 /** Strip all whitespace from text */
 export const removeAllSpaces = (text) => post('/api/v1/text/remove-all-spaces', { text });
+
+/** Remove line breaks, replacing them with spaces */
+export const removeLineBreaks = (text) => post('/api/v1/text/remove-line-breaks', { text });
 
 /** Analyze text and return word/char/sentence counts */
 export const analyzeText = (text) => post('/api/v1/text/analyze', { text });

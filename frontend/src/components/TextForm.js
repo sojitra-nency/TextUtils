@@ -2,11 +2,9 @@ import React, { useState } from 'react'
 import * as textService from '../services/textService'
 
 export default function TextForm(props) {
-    const [text, setText] = useState('Enter text here')
+    const [text, setText] = useState('')
     const [loading, setLoading] = useState(false)
-    const [summary, setSummary] = useState(null)
 
-    // Generic handler for API-backed transformations
     const callApi = async (serviceFn, successMsg) => {
         if (!text) return
         setLoading(true)
@@ -21,116 +19,189 @@ export default function TextForm(props) {
         }
     }
 
-    const handleAnalyze = async () => {
-        if (!text) return
-        setLoading(true)
-        try {
-            const data = await textService.analyzeText(text)
-            setSummary(data)
-            props.showAlert('Text analyzed', 'success')
-        } catch (err) {
-            props.showAlert(err.message || 'API error', 'danger')
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    // Local operations — no backend needed
-    const handleCtClick = () => {
+    const handleClear = () => {
         setText('')
-        setSummary(null)
-        props.showAlert('Text Cleared', 'success')
+        props.showAlert('Text cleared', 'success')
     }
 
-    const handleCoClick = () => {
+    const handleCopy = () => {
         navigator.clipboard.writeText(text)
-        props.showAlert('Text Copied', 'success')
+        props.showAlert('Copied to clipboard', 'success')
     }
 
-    const handlePaClick = () => {
+    const handlePaste = () => {
         navigator.clipboard.readText().then(t => setText(t))
-        props.showAlert('Text Pasted', 'success')
+        props.showAlert('Pasted from clipboard', 'success')
     }
 
-    const handleTtsClick = () => {
+    const handleTts = () => {
         const msg = new SpeechSynthesisUtterance(text)
         window.speechSynthesis.speak(msg)
-        props.showAlert('Text-to-Speech', 'success')
+        props.showAlert('Speaking\u2026', 'info')
     }
 
-    const handleOnChange = (event) => {
-        setText(event.target.value)
-        setSummary(null)
-    }
+    const handleChange = (e) => setText(e.target.value)
 
     const disabled = text.length === 0 || loading
 
+    const words         = text.split(/\s+/).filter(Boolean).length
+    const chars         = text.length
+    const charsNoSpaces = text.replace(/\s/g, '').length
+    const sentences     = text.split(/[.?]\s*(?=\S|$)|\n/).filter(s => s.trim()).length
+    const readingTime   = (words / 125).toFixed(2)
+
+    const stats = [
+        { label: 'Words',          value: words         },
+        { label: 'Characters',     value: chars         },
+        { label: 'No-space chars', value: charsNoSpaces },
+        { label: 'Sentences',      value: sentences     },
+        { label: 'Min. to read',   value: readingTime   },
+    ]
+
     return (
-        <>
-            <div className='container'>
-                <h1 className="my-3">{props.heading}</h1>
-                <div className="mb-3">
-                    <label htmlFor="text" className="form-label">Enter something into the box....</label>
-                    <textarea
-                        className="form-control"
-                        id="text"
-                        rows="10"
-                        value={text}
-                        onChange={handleOnChange}
-                        style={{ backgroundColor: props.mode === 'dark' ? 'white' : '#E0E0E0' }}
-                    />
+        <div className="tu-workspace">
+            {/* Ambient blobs */}
+            <div className="tu-blob tu-blob-1" />
+            <div className="tu-blob tu-blob-2" />
+            <div className="tu-blob tu-blob-3" />
+
+            {/* Hero */}
+            <div className="tu-hero">
+                <h1 className="tu-hero-title">
+                    Transform Your <span className="tu-gradient-text">Text</span>
+                </h1>
+                <p className="tu-hero-sub">
+                    10 powerful utilities &mdash; instant results.
+                </p>
+            </div>
+
+            {/* Editor card */}
+            <div className="tu-editor-card">
+                <div className="tu-editor-topbar">
+                    <div className="tu-dots">
+                        <span /><span /><span />
+                    </div>
+                    <span className="tu-editor-label">Text Editor</span>
                 </div>
 
-                <button disabled={disabled} className="btn btn-primary mx-1 my-1"
-                    onClick={() => callApi(textService.toUpperCase, 'Converted to Uppercase')}>Upper Case</button>
-                <button disabled={disabled} className="btn btn-primary mx-1 my-1"
-                    onClick={() => callApi(textService.toLowerCase, 'Converted to Lowercase')}>Lower Case</button>
-                <button disabled={disabled} className="btn btn-primary mx-1 my-1"
-                    onClick={() => callApi(textService.toInverseCase, 'Converted to Inverse Case')}>Inverse Case</button>
-                <button disabled={disabled} className="btn btn-primary mx-1 my-1"
-                    onClick={() => callApi(textService.toUpperCamelCase, 'Converted to Upper Camel Case')}>Upper Camel Case</button>
-                <button disabled={disabled} className="btn btn-primary mx-1 my-1"
-                    onClick={() => callApi(textService.toLowerCamelCase, 'Converted to Lower Camel Case')}>Lower Camel Case</button>
-                <button disabled={disabled} className="btn btn-primary mx-1 my-1"
-                    onClick={() => callApi(textService.toSentenceCase, 'Converted to Sentence Case')}>Sentence Case</button>
-                <button disabled={disabled} className="btn btn-primary mx-1 my-1"
-                    onClick={() => callApi(textService.removeAllSpaces, 'Removed All Spaces')}>Remove All Spaces</button>
-                <button disabled={disabled} className="btn btn-primary mx-1 my-1"
-                    onClick={() => callApi(textService.removeExtraSpaces, 'Removed Extra Spaces')}>Remove Extra Spaces</button>
-                <button disabled={disabled} className="btn btn-primary mx-1 my-1"
-                    onClick={handleTtsClick}>Text to Speech</button>
-                <button disabled={disabled} className="btn btn-primary mx-1 my-1"
-                    onClick={handleCoClick}>Copy</button>
-                <button disabled={loading} className="btn btn-primary mx-1 my-1"
-                    onClick={handlePaClick}>Paste</button>
-                <button disabled={text.length === 0} className="btn btn-primary mx-1 my-1"
-                    onClick={handleCtClick}>Clear Text</button>
-                <button disabled={disabled} className="btn btn-secondary mx-1 my-1"
-                    onClick={handleAnalyze}>Analyze</button>
+                <textarea
+                    className="tu-textarea"
+                    id="text"
+                    rows="10"
+                    value={text}
+                    onChange={handleChange}
+                    placeholder="Start typing or paste your text here\u2026"
+                />
 
-                {loading && <span className="ms-2 text-muted small">Processing...</span>}
-            </div>
+                <div className="tu-actions">
+                    {/* Case transformations */}
+                    <div className="tu-action-group">
+                        <p className="tu-group-label">Case Transformations</p>
+                        <div className="tu-btn-row">
+                            <button disabled={disabled} className="tu-btn tu-btn--case"
+                                onClick={() => callApi(textService.toUpperCase, 'Converted to uppercase')}>
+                                Uppercase
+                            </button>
+                            <button disabled={disabled} className="tu-btn tu-btn--case"
+                                onClick={() => callApi(textService.toLowerCase, 'Converted to lowercase')}>
+                                Lowercase
+                            </button>
+                            <button disabled={disabled} className="tu-btn tu-btn--case"
+                                onClick={() => callApi(textService.toTitleCase, 'Converted to title case')}>
+                                Title Case
+                            </button>
+                            <button disabled={disabled} className="tu-btn tu-btn--case"
+                                onClick={() => callApi(textService.toSentenceCase, 'Converted to sentence case')}>
+                                Sentence Case
+                            </button>
+                            <button disabled={disabled} className="tu-btn tu-btn--case"
+                                onClick={() => callApi(textService.toInverseCase, 'Case toggled')}>
+                                Toggle Case
+                            </button>
+                            <button disabled={disabled} className="tu-btn tu-btn--case"
+                                onClick={() => callApi(textService.toUpperCamelCase, 'Converted to UpperCamelCase')}>
+                                UpperCamelCase
+                            </button>
+                            <button disabled={disabled} className="tu-btn tu-btn--case"
+                                onClick={() => callApi(textService.toLowerCamelCase, 'Converted to lowerCamelCase')}>
+                                lowerCamelCase
+                            </button>
+                        </div>
+                    </div>
 
-            <div className='container my-3'>
-                <h2>Your Text Summary</h2>
-                {summary ? (
-                    <>
-                        <p>{summary.sentence_count} sentences, {summary.word_count} words and {summary.character_count} characters</p>
-                        <p>{summary.reading_time_minutes} minutes read.</p>
-                    </>
-                ) : (
-                    <>
-                        <p>
-                            {text.split(/[.?]\s*(?=\s|$)|\n/).filter(e => e.length !== 0).length} sentences,&nbsp;
-                            {text.split(/\s+/).filter(e => e.length !== 0).length} words and&nbsp;
-                            {text.length} characters
-                        </p>
-                        <p>{(0.008 * text.split(' ').filter(e => e.length !== 0).length).toFixed(2)} minutes read.</p>
-                    </>
+                    {/* Whitespace */}
+                    <div className="tu-action-group">
+                        <p className="tu-group-label">Whitespace</p>
+                        <div className="tu-btn-row">
+                            <button disabled={disabled} className="tu-btn tu-btn--space"
+                                onClick={() => callApi(textService.removeExtraSpaces, 'Removed extra spaces')}>
+                                Remove Extra Spaces
+                            </button>
+                            <button disabled={disabled} className="tu-btn tu-btn--space"
+                                onClick={() => callApi(textService.removeLineBreaks, 'Removed line breaks')}>
+                                Remove Line Breaks
+                            </button>
+                            <button disabled={disabled} className="tu-btn tu-btn--space"
+                                onClick={() => callApi(textService.removeAllSpaces, 'Removed all spaces')}>
+                                Remove All Spaces
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Tools */}
+                    <div className="tu-action-group">
+                        <p className="tu-group-label">Tools</p>
+                        <div className="tu-btn-row">
+                            <button disabled={disabled} className="tu-btn tu-btn--clip"
+                                onClick={handleCopy}>
+                                Copy
+                            </button>
+                            <button disabled={loading} className="tu-btn tu-btn--clip"
+                                onClick={handlePaste}>
+                                Paste
+                            </button>
+                            <button disabled={disabled} className="tu-btn tu-btn--amber"
+                                onClick={handleTts}>
+                                Text to Speech
+                            </button>
+                            <button disabled={text.length === 0} className="tu-btn tu-btn--danger"
+                                onClick={handleClear}>
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {loading && (
+                    <div className="tu-loading">
+                        <div className="tu-spinner" />
+                        Processing&hellip;
+                    </div>
                 )}
-                <h2>Preview</h2>
-                <p>{text.length > 0 ? text : 'Nothing to Preview :('}</p>
             </div>
-        </>
+
+            {/* Stats */}
+            <div className="tu-stats">
+                {stats.map(({ label, value }) => (
+                    <div className="tu-stat-card" key={label}>
+                        <span className="tu-stat-value">{value}</span>
+                        <span className="tu-stat-label">{label}</span>
+                    </div>
+                ))}
+            </div>
+
+            {/* Preview */}
+            <div className="tu-preview-card">
+                <div className="tu-preview-header">
+                    <span className="tu-preview-title">Preview</span>
+                </div>
+                <div className="tu-preview-body">
+                    {text.length > 0
+                        ? text
+                        : <span className="tu-preview-empty">Nothing to preview yet&hellip;</span>
+                    }
+                </div>
+            </div>
+        </div>
     )
 }
