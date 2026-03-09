@@ -7,7 +7,10 @@
 import { useState } from 'react';
 
 export function useTheme(showAlert) {
-    const [mode, setMode] = useState('light');
+    const [mode, setMode] = useState(() => {
+        document.body.classList.add('dark');
+        return 'dark';
+    });
 
     const toggleMode = () => {
         if (mode === 'light') {

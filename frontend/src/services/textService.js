@@ -90,3 +90,7 @@ export const generateMetaDescriptions = (text) => post('/api/v1/text/generate-me
 export const generateBlogOutline      = (text) => post('/api/v1/text/generate-blog-outline',      { text });
 export const shortenForTweet          = (text) => post('/api/v1/text/shorten-for-tweet',          { text });
 export const rewriteEmail            = (text) => post('/api/v1/text/rewrite-email',             { text });
+export const generateBulletPoints   = (text) => post('/api/v1/text/generate-bullet-points',   { text });
+export const extractKeywords        = (text) => post('/api/v1/text/extract-keywords',        { text });
+export const translateText          = (text, target_language) => post('/api/v1/text/translate',       { text, target_language });
+export const transliterateText     = (text, target_language) => post('/api/v1/text/transliterate',   { text, target_language });

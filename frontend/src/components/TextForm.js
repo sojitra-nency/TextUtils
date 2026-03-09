@@ -38,6 +38,8 @@ export default function TextForm(props) {
     const [pwdLen, setPwdLen]             = useState(16)
     const [pwdOpts, setPwdOpts]           = useState({ upper: true, lower: true, numbers: true, symbols: true })
     const [generatedPwd, setGeneratedPwd] = useState('')
+    const [translateLang, setTranslateLang] = useState('Spanish')
+    const [translitLang, setTranslitLang] = useState('Hindi')
     const defaultFmtCfg = {
         tabWidth:         2,
         useTabs:          false,
@@ -98,6 +100,36 @@ export default function TextForm(props) {
     const handleBlogOutline     = () => callAi(textService.generateBlogOutline,     'Blog Outline',      'Blog outline generation failed')
     const handleTweetShorten    = () => callAi(textService.shortenForTweet,         'Tweet',             'Tweet shortening failed')
     const handleEmailRewrite   = () => callAi(textService.rewriteEmail,            'Email',             'Email rewriting failed')
+    const handleBulletPoints  = () => callAi(textService.generateBulletPoints,  'Bullet Points',     'Bullet point generation failed')
+    const handleKeywords      = () => callAi(textService.extractKeywords,       'Keywords',          'Keyword extraction failed')
+
+    const handleTranslate = async () => {
+        if (!text) return
+        setLoading(true)
+        try {
+            const data = await textService.translateText(text, translateLang)
+            setAiResult({ label: `Translation (${translateLang})`, result: data.result })
+            props.showAlert(`Translated to ${translateLang}`, 'success')
+        } catch (err) {
+            props.showAlert(err.message || 'Translation failed', 'danger')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleTransliterate = async () => {
+        if (!text) return
+        setLoading(true)
+        try {
+            const data = await textService.transliterateText(text, translitLang)
+            setAiResult({ label: `Transliteration (${translitLang})`, result: data.result })
+            props.showAlert(`Transliterated to ${translitLang} script`, 'success')
+        } catch (err) {
+            props.showAlert(err.message || 'Transliteration failed', 'danger')
+        } finally {
+            setLoading(false)
+        }
+    }
 
     const handleAiAccept = () => {
         if (aiResult) {
@@ -854,6 +886,32 @@ export default function TextForm(props) {
                                 onClick={handleTweetShorten} />
                             <Tile icon="✉" label="Email Rewrite" color="pink" disabled={disabled}
                                 onClick={handleEmailRewrite} />
+                            <Tile icon="•" label="Bullet Points" color="pink" disabled={disabled}
+                                onClick={handleBulletPoints} />
+                            <Tile icon="⊕" label="Keywords" color="pink" disabled={disabled}
+                                onClick={handleKeywords} />
+                            <div className="tu-tile-translate">
+                                <select className="tu-translate-select" value={translateLang}
+                                    onChange={e => setTranslateLang(e.target.value)}>
+                                    {['Spanish','French','German','Hindi','Chinese','Japanese','Korean',
+                                      'Portuguese','Italian','Arabic','Russian','Dutch','Turkish','Bengali'].map(l => (
+                                        <option key={l} value={l}>{l}</option>
+                                    ))}
+                                </select>
+                                <Tile icon="🌐" label="Translate" color="pink" disabled={disabled}
+                                    onClick={handleTranslate} />
+                            </div>
+                            <div className="tu-tile-translate">
+                                <select className="tu-translate-select" value={translitLang}
+                                    onChange={e => setTranslitLang(e.target.value)}>
+                                    {['Hindi','Arabic','Chinese','Japanese','Korean','Russian',
+                                      'Greek','Thai','Bengali','Tamil','Telugu','Gujarati','Kannada','Urdu'].map(l => (
+                                        <option key={l} value={l}>{l}</option>
+                                    ))}
+                                </select>
+                                <Tile icon="अ" label="Translit" color="pink" disabled={disabled}
+                                    onClick={handleTransliterate} />
+                            </div>
                         </div>
                     </div>
 
