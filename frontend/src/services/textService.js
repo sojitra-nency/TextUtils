@@ -59,3 +59,18 @@ export const removeAllSpaces = (text) => post('/api/v1/text/remove-all-spaces', 
 
 /** Remove line breaks, replacing them with spaces */
 export const removeLineBreaks = (text) => post('/api/v1/text/remove-line-breaks', { text });
+
+/** Collapse all whitespace to single spaces */
+export const minify = (text) => post('/api/v1/text/minify', { text });
+
+// ── Encoding ──────────────────────────────────────────────────────────────────
+
+export const base64Encode = (text) => post('/api/v1/text/base64-encode', { text });
+export const base64Decode = (text) => post('/api/v1/text/base64-decode', { text });
+export const urlEncode    = (text) => post('/api/v1/text/url-encode',    { text });
+export const urlDecode    = (text) => post('/api/v1/text/url-decode',    { text });
+
+// ── Developer Tools ───────────────────────────────────────────────────────────
+
+export const formatJson  = (text) => post('/api/v1/text/format-json',  { text });
+export const jsonToYaml  = (text) => post('/api/v1/text/json-to-yaml', { text });
