@@ -15,6 +15,8 @@ export default function TextForm(props) {
     const [listening, setListening] = useState(false)
     const [dyslexiaMode, setDyslexiaMode] = useState(false)
     const [markdownMode, setMarkdownMode] = useState(false)
+    const [aiResult, setAiResult] = useState(null)   // { label, result }
+
 
     // Unified drawer state: null | 'find' | 'fmt' | 'compare' | 'randtext' | 'password'
     const [activePanel, setActivePanel] = useState(null)
@@ -74,6 +76,37 @@ export default function TextForm(props) {
         }
     }
 
+
+    // ── AI Tools ─────────────────────────────────────────────────────────────────
+    const callAi = async (serviceFn, label, errorMsg) => {
+        if (!text) return
+        setLoading(true)
+        try {
+            const data = await serviceFn(text)
+            setAiResult({ label, result: data.result })
+            props.showAlert(`${label} generated`, 'success')
+        } catch (err) {
+            props.showAlert(err.message || errorMsg, 'danger')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleHashtags        = () => callAi(textService.generateHashtags,        'Hashtags',          'Hashtag generation failed')
+    const handleSeoTitles       = () => callAi(textService.generateSeoTitles,       'SEO Titles',        'SEO title generation failed')
+    const handleMetaDescriptions = () => callAi(textService.generateMetaDescriptions, 'Meta Descriptions', 'Meta description generation failed')
+    const handleBlogOutline     = () => callAi(textService.generateBlogOutline,     'Blog Outline',      'Blog outline generation failed')
+    const handleTweetShorten    = () => callAi(textService.shortenForTweet,         'Tweet',             'Tweet shortening failed')
+    const handleEmailRewrite   = () => callAi(textService.rewriteEmail,            'Email',             'Email rewriting failed')
+
+    const handleAiAccept = () => {
+        if (aiResult) {
+            setText(aiResult.result)
+            setAiResult(null)
+        }
+    }
+
+    const handleAiDismiss = () => setAiResult(null)
 
     // ── Clipboard ──────────────────────────────────────────────────────────────
     const handleClear = () => {
@@ -689,6 +722,28 @@ export default function TextForm(props) {
                     </div>
                 )}
 
+                {aiResult && (
+                    <div className="tu-ai-panel">
+                        <div className="tu-ai-panel-header">
+                            <span className="tu-ai-panel-label">{aiResult.label}</span>
+                            <div className="tu-ai-panel-actions">
+                                <button className="tu-btn tu-btn--ai-accept" onClick={handleAiAccept}>
+                                    ✓ Accept
+                                </button>
+                                <button className="tu-btn tu-btn--ai-copy" onClick={() => { navigator.clipboard.writeText(aiResult.result); props.showAlert('AI result copied', 'success') }}>
+                                    ⧉ Copy
+                                </button>
+                                <button className="tu-btn tu-btn--ai-dismiss" onClick={handleAiDismiss}>
+                                    ✕
+                                </button>
+                            </div>
+                        </div>
+                        <div className="tu-ai-panel-body">
+                            {aiResult.result}
+                        </div>
+                    </div>
+                )}
+
                 {/* ── Tile Grid ────────────────────────────────────────── */}
                 <div className="tu-tile-grid">
 
@@ -780,6 +835,25 @@ export default function TextForm(props) {
                             <Tile icon="⚙" label="Fmt Settings" color="gray"
                                 active={activePanel === 'fmt'}
                                 onClick={() => togglePanel('fmt')} />
+                        </div>
+                    </div>
+
+                    {/* AI Tools */}
+                    <div className="tu-tile-section">
+                        <span className="tu-tile-sec-label" style={{ color: '#EC4899' }}>✧ AI Tools</span>
+                        <div className="tu-tile-row">
+                            <Tile icon="#" label="Hashtags" color="pink" disabled={disabled}
+                                onClick={handleHashtags} />
+                            <Tile icon="SEO" label="SEO Titles" color="pink" disabled={disabled}
+                                onClick={handleSeoTitles} />
+                            <Tile icon="M:" label="Meta Desc" color="pink" disabled={disabled}
+                                onClick={handleMetaDescriptions} />
+                            <Tile icon="¶" label="Blog Outline" color="pink" disabled={disabled}
+                                onClick={handleBlogOutline} />
+                            <Tile icon="✂" label="Tweet Shorten" color="pink" disabled={disabled}
+                                onClick={handleTweetShorten} />
+                            <Tile icon="✉" label="Email Rewrite" color="pink" disabled={disabled}
+                                onClick={handleEmailRewrite} />
                         </div>
                     </div>
 

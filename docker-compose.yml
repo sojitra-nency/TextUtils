@@ -29,6 +29,8 @@ services:
     volumes:
       - ./backend:/app      # mount source — uvicorn --reload picks up changes
       - /app/.venv          # anonymous volume keeps host .venv out of the container
+    env_file:
+      - ./backend/.env
     environment:
       - HOST=0.0.0.0
       - PORT=8000

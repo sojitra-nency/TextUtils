@@ -81,3 +81,12 @@ export const removeDuplicateLines = (text) => post('/api/v1/text/remove-duplicat
 
 export const formatJson  = (text) => post('/api/v1/text/format-json',  { text });
 export const jsonToYaml  = (text) => post('/api/v1/text/json-to-yaml', { text });
+
+// ── AI Tools ─────────────────────────────────────────────────────────────────
+
+export const generateHashtags        = (text) => post('/api/v1/text/generate-hashtags',          { text });
+export const generateSeoTitles       = (text) => post('/api/v1/text/generate-seo-titles',       { text });
+export const generateMetaDescriptions = (text) => post('/api/v1/text/generate-meta-descriptions', { text });
+export const generateBlogOutline      = (text) => post('/api/v1/text/generate-blog-outline',      { text });
+export const shortenForTweet          = (text) => post('/api/v1/text/shorten-for-tweet',          { text });
+export const rewriteEmail            = (text) => post('/api/v1/text/rewrite-email',             { text });

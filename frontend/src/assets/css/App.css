@@ -351,6 +351,86 @@ body {
   font-style: italic;
 }
 
+/* ── AI Result Panel ─────────────────────────────────── */
+.tu-ai-panel {
+  border-top: 1px solid rgba(236, 72, 153, 0.2);
+  background: rgba(236, 72, 153, 0.03);
+}
+
+.tu-ai-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1.25rem;
+  border-bottom: 1px solid rgba(236, 72, 153, 0.12);
+}
+
+.tu-ai-panel-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #EC4899;
+}
+
+.tu-ai-panel-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.tu-ai-panel-body {
+  padding: 1rem 1.25rem;
+  font-size: 0.92rem;
+  line-height: 1.75;
+  font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Cascadia Code', monospace;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.tu-btn--ai-accept {
+  background: var(--emerald);
+  color: #fff;
+  border: none;
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--r-pill);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--t);
+}
+.tu-btn--ai-accept:hover { opacity: 0.85; }
+
+.tu-btn--ai-copy {
+  background: var(--surface-2);
+  color: var(--text-2);
+  border: 1px solid var(--border);
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--r-pill);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--t);
+}
+.tu-btn--ai-copy:hover { border-color: var(--border-strong); color: var(--text); }
+
+.tu-btn--ai-dismiss {
+  background: transparent;
+  color: var(--text-3);
+  border: 1px solid var(--border);
+  padding: 0.3rem 0.5rem;
+  border-radius: var(--r-pill);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  line-height: 1;
+  transition: all var(--t);
+}
+.tu-btn--ai-dismiss:hover { border-color: var(--rose); color: var(--rose); }
+
 /* ── Action Groups ───────────────────────────────────── */
 .tu-actions {
   padding: 1rem 1.2rem 1.2rem;
@@ -1695,6 +1775,18 @@ body {
   border-color: #F43F5E;
   color: white;
   box-shadow: 0 4px 18px rgba(244, 63, 94, 0.38);
+}
+
+.tu-tile--pink {
+  border-color: rgba(236, 72, 153, 0.25);
+  color: #DB2777;
+}
+.tu-tile--pink:not(:disabled):hover,
+.tu-tile--pink.tu-tile--active {
+  background: #EC4899;
+  border-color: #EC4899;
+  color: white;
+  box-shadow: 0 4px 18px rgba(236, 72, 153, 0.38);
 }
 
 /* ── Slide-up Drawer ────────────────────────────────── */
