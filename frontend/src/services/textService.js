@@ -59,6 +59,3 @@ export const removeAllSpaces = (text) => post('/api/v1/text/remove-all-spaces', 
 
 /** Remove line breaks, replacing them with spaces */
 export const removeLineBreaks = (text) => post('/api/v1/text/remove-line-breaks', { text });
-
-/** Analyze text and return word/char/sentence counts */
-export const analyzeText = (text) => post('/api/v1/text/analyze', { text });

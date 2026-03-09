@@ -1,9 +1,22 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
+import { jsPDF } from 'jspdf'
+import { Document, Paragraph, TextRun, Packer } from 'docx'
 import * as textService from '../services/textService'
 
 export default function TextForm(props) {
     const [text, setText] = useState('')
     const [loading, setLoading] = useState(false)
+    const [listening, setListening] = useState(false)
+    const [dyslexiaMode, setDyslexiaMode] = useState(false)
+    const recognitionRef = useRef(null)
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search)
+        const shared = params.get('t')
+        if (shared) {
+            try { setText(decodeURIComponent(atob(shared))) } catch {}
+        }
+    }, [])
 
     const callApi = async (serviceFn, successMsg) => {
         if (!text) return
@@ -30,14 +43,103 @@ export default function TextForm(props) {
     }
 
     const handlePaste = () => {
-        navigator.clipboard.readText().then(t => setText(t))
+        navigator.clipboard.readText().then(t => setText(prev => prev + t))
         props.showAlert('Pasted from clipboard', 'success')
+    }
+
+    const handleClearPaste = () => {
+        navigator.clipboard.readText().then(t => setText(t))
+        props.showAlert('Cleared and pasted', 'success')
     }
 
     const handleTts = () => {
         const msg = new SpeechSynthesisUtterance(text)
         window.speechSynthesis.speak(msg)
         props.showAlert('Speaking\u2026', 'info')
+    }
+
+    const triggerDownload = (blob, filename) => {
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = filename
+        a.click()
+        URL.revokeObjectURL(url)
+    }
+
+    const handleDownloadTxt = () => {
+        triggerDownload(new Blob([text], { type: 'text/plain' }), 'textutils.txt')
+        props.showAlert('Downloaded as TXT', 'success')
+    }
+
+    const handleDownloadJson = () => {
+        triggerDownload(
+            new Blob([JSON.stringify({ text }, null, 2)], { type: 'application/json' }),
+            'textutils.json'
+        )
+        props.showAlert('Downloaded as JSON', 'success')
+    }
+
+    const handleDownloadPdf = () => {
+        const doc = new jsPDF()
+        const lines = doc.splitTextToSize(text, 180)
+        doc.text(lines, 14, 20)
+        doc.save('textutils.pdf')
+        props.showAlert('Downloaded as PDF', 'success')
+    }
+
+    const handleDownloadDocx = async () => {
+        const paragraphs = text.split('\n').map(line =>
+            new Paragraph({ children: [new TextRun(line)] })
+        )
+        const wordDoc = new Document({ sections: [{ properties: {}, children: paragraphs }] })
+        const blob = await Packer.toBlob(wordDoc)
+        triggerDownload(blob, 'textutils.docx')
+        props.showAlert('Downloaded as DOCX', 'success')
+    }
+
+    const handleShare = () => {
+        const encoded = btoa(encodeURIComponent(text))
+        const url = `${window.location.origin}${window.location.pathname}?t=${encoded}`
+        navigator.clipboard.writeText(url)
+        props.showAlert('Share link copied to clipboard!', 'success')
+    }
+
+    const handleSpeechToText = () => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+        if (!SpeechRecognition) {
+            props.showAlert('Speech recognition not supported in this browser', 'danger')
+            return
+        }
+        if (listening) {
+            recognitionRef.current?.stop()
+            setListening(false)
+            return
+        }
+        const recognition = new SpeechRecognition()
+        recognition.continuous = true
+        recognition.interimResults = false
+        recognition.lang = 'en-US'
+        recognition.onresult = (e) => {
+            const transcript = Array.from(e.results).map(r => r[0].transcript).join(' ')
+            setText(prev => prev ? prev + ' ' + transcript : transcript)
+        }
+        recognition.onerror = () => {
+            setListening(false)
+            props.showAlert('Speech recognition error', 'danger')
+        }
+        recognition.onend = () => setListening(false)
+        recognitionRef.current = recognition
+        recognition.start()
+        setListening(true)
+        props.showAlert('Listening\u2026 speak now', 'info')
+    }
+
+    const handleDyslexiaMode = () => {
+        setDyslexiaMode(prev => {
+            props.showAlert(!prev ? 'Dyslexia font on' : 'Dyslexia font off', 'info')
+            return !prev
+        })
     }
 
     const handleChange = (e) => setText(e.target.value)
@@ -85,7 +187,7 @@ export default function TextForm(props) {
                 </div>
 
                 <textarea
-                    className="tu-textarea"
+                    className={`tu-textarea${dyslexiaMode ? ' tu-dyslexia' : ''}`}
                     id="text"
                     rows="10"
                     value={text}
@@ -148,9 +250,9 @@ export default function TextForm(props) {
                         </div>
                     </div>
 
-                    {/* Tools */}
+                    {/* Clipboard */}
                     <div className="tu-action-group">
-                        <p className="tu-group-label">Tools</p>
+                        <p className="tu-group-label">Clipboard</p>
                         <div className="tu-btn-row">
                             <button disabled={disabled} className="tu-btn tu-btn--clip"
                                 onClick={handleCopy}>
@@ -160,13 +262,68 @@ export default function TextForm(props) {
                                 onClick={handlePaste}>
                                 Paste
                             </button>
-                            <button disabled={disabled} className="tu-btn tu-btn--amber"
-                                onClick={handleTts}>
-                                Text to Speech
+                            <button disabled={loading} className="tu-btn tu-btn--clip"
+                                onClick={handleClearPaste}>
+                                Clear &amp; Paste
                             </button>
                             <button disabled={text.length === 0} className="tu-btn tu-btn--danger"
                                 onClick={handleClear}>
                                 Clear
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Speech */}
+                    <div className="tu-action-group">
+                        <p className="tu-group-label">Speech</p>
+                        <div className="tu-btn-row">
+                            <button disabled={disabled} className="tu-btn tu-btn--amber"
+                                onClick={handleTts}>
+                                Text to Speech
+                            </button>
+                            <button
+                                className={`tu-btn ${listening ? 'tu-btn--listening' : 'tu-btn--stt'}`}
+                                onClick={handleSpeechToText}>
+                                {listening ? 'Stop Listening' : 'Speech to Text'}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Accessibility */}
+                    <div className="tu-action-group">
+                        <p className="tu-group-label">Accessibility</p>
+                        <div className="tu-btn-row">
+                            <button
+                                className={`tu-btn ${dyslexiaMode ? 'tu-btn--dyslexia-on' : 'tu-btn--dyslexia'}`}
+                                onClick={handleDyslexiaMode}>
+                                {dyslexiaMode ? 'Dyslexia Font: ON' : 'Dyslexia Font'}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Export & Share */}
+                    <div className="tu-action-group">
+                        <p className="tu-group-label">Export &amp; Share</p>
+                        <div className="tu-btn-row">
+                            <button disabled={disabled} className="tu-btn tu-btn--export"
+                                onClick={handleDownloadTxt}>
+                                Download TXT
+                            </button>
+                            <button disabled={disabled} className="tu-btn tu-btn--export"
+                                onClick={handleDownloadPdf}>
+                                Download PDF
+                            </button>
+                            <button disabled={disabled} className="tu-btn tu-btn--export"
+                                onClick={handleDownloadDocx}>
+                                Download DOCX
+                            </button>
+                            <button disabled={disabled} className="tu-btn tu-btn--export"
+                                onClick={handleDownloadJson}>
+                                Download JSON
+                            </button>
+                            <button disabled={disabled} className="tu-btn tu-btn--share"
+                                onClick={handleShare}>
+                                Share Link
                             </button>
                         </div>
                     </div>
@@ -195,7 +352,7 @@ export default function TextForm(props) {
                 <div className="tu-preview-header">
                     <span className="tu-preview-title">Preview</span>
                 </div>
-                <div className="tu-preview-body">
+                <div className={`tu-preview-body${dyslexiaMode ? ' tu-dyslexia' : ''}`}>
                     {text.length > 0
                         ? text
                         : <span className="tu-preview-empty">Nothing to preview yet&hellip;</span>
