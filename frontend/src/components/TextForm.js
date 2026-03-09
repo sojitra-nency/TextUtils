@@ -15,10 +15,11 @@ export default function TextForm(props) {
     const [listening, setListening] = useState(false)
     const [dyslexiaMode, setDyslexiaMode] = useState(false)
     const [markdownMode, setMarkdownMode] = useState(false)
-    const [showFmtCfg, setShowFmtCfg] = useState(false)
+
+    // Unified drawer state: null | 'find' | 'fmt' | 'compare' | 'randtext' | 'password'
+    const [activePanel, setActivePanel] = useState(null)
 
     // Find & Replace
-    const [showFindReplace, setShowFindReplace]     = useState(false)
     const [findText, setFindText]                   = useState('')
     const [replaceText, setReplaceText]             = useState('')
     const [findCaseSensitive, setFindCaseSensitive] = useState(false)
@@ -368,21 +369,270 @@ export default function TextForm(props) {
 
     const disabled = text.length === 0 || loading
 
-    const words        = text.split(/\s+/).filter(Boolean).length
-    const chars        = text.length
+    const words         = text.split(/\s+/).filter(Boolean).length
+    const chars         = text.length
     const charsNoSpaces = text.replace(/\s/g, '').length
-    const sentences    = text.split(/[.?]\s*(?=\S|$)|\n/).filter(s => s.trim()).length
-    const readingTime  = (words / 125).toFixed(2)
-    const specialChars = text.replace(/[a-zA-Z0-9\s]/g, '').length
+    const sentences     = text.split(/[.?]\s*(?=\S|$)|\n/).filter(s => s.trim()).length
 
-    const stats = [
-        { label: 'Words',          value: words         },
-        { label: 'Characters',     value: chars         },
-        { label: 'No-space chars', value: charsNoSpaces },
-        { label: 'Sentences',      value: sentences     },
-        { label: 'Special chars',  value: specialChars  },
-        { label: 'Min. to read',   value: readingTime   },
-    ]
+    // ── Tile helper ────────────────────────────────────────────────────────────
+    const togglePanel = (panel) => setActivePanel(prev => prev === panel ? null : panel)
+
+    const Tile = ({ icon, label, onClick, color, active, disabled: dis }) => (
+        <button
+            className={`tu-tile tu-tile--${color}${active ? ' tu-tile--active' : ''}`}
+            onClick={onClick}
+            disabled={dis || false}
+            title={label}
+        >
+            <span className="tu-tile-icon">{icon}</span>
+            <span className="tu-tile-label">{label}</span>
+        </button>
+    )
+
+    // ── Drawer content renderer ────────────────────────────────────────────────
+    const renderDrawer = () => {
+        if (!activePanel) return null
+
+        const panels = {
+            find: {
+                title: 'Find & Replace',
+                color: 'teal',
+                content: (
+                    <div className="tu-find-inputs">
+                        <input className="tu-find-input" placeholder="Find…"
+                            value={findText} onChange={e => { setFindText(e.target.value); setReplaceCount(null) }} />
+                        <input className="tu-find-input" placeholder="Replace with…"
+                            value={replaceText} onChange={e => setReplaceText(e.target.value)} />
+                        <div className="tu-find-footer">
+                            <div className="tu-find-flags">
+                                <label className="tu-fmt-check">
+                                    <input type="checkbox" checked={findCaseSensitive}
+                                        onChange={e => setFindCaseSensitive(e.target.checked)} />
+                                    Case-sensitive
+                                </label>
+                                <label className="tu-fmt-check">
+                                    <input type="checkbox" checked={findUseRegex}
+                                        onChange={e => setFindUseRegex(e.target.checked)} />
+                                    Regex
+                                </label>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                {replaceCount !== null && (
+                                    <span className="tu-find-count">{replaceCount} replaced</span>
+                                )}
+                                <button className="tu-btn tu-btn--tools" disabled={disabled}
+                                    onClick={handleReplaceAll}>Replace All</button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            },
+            compare: {
+                title: 'Text Compare',
+                color: 'purple',
+                content: (
+                    <div style={{ padding: '0.85rem 1.1rem' }}>
+                        <textarea className="tu-textarea" rows="5" placeholder="Paste comparison text here…"
+                            value={compareText} onChange={e => { setCompareText(e.target.value); setDiffResult(null) }}
+                            style={{ minHeight: 100, border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: '0.6rem 0.85rem' }} />
+                        <div style={{ marginTop: '0.6rem', display: 'flex', justifyContent: 'flex-end' }}>
+                            <button className="tu-btn tu-btn--compare" disabled={disabled || !compareText}
+                                onClick={handleCompare}>Compare</button>
+                        </div>
+                        {diffResult && (
+                            <div className="tu-diff-output" style={{ marginTop: '0.85rem' }}>
+                                <div className="tu-diff-legend">
+                                    <span className="tu-diff-badge tu-diff-badge--added">+ Added</span>
+                                    <span className="tu-diff-badge tu-diff-badge--removed">− Removed</span>
+                                    <span className="tu-diff-badge tu-diff-badge--same">= Same</span>
+                                    <span className="tu-diff-stats">
+                                        {diffResult.filter(d => d.type === 'added').length} added &nbsp;·&nbsp;
+                                        {diffResult.filter(d => d.type === 'removed').length} removed
+                                    </span>
+                                </div>
+                                {diffResult.map((d, idx) => (
+                                    <div key={idx} className={`tu-diff-line tu-diff-line--${d.type}`}>
+                                        <span className="tu-diff-marker">
+                                            {d.type === 'added' ? '+' : d.type === 'removed' ? '−' : ' '}
+                                        </span>
+                                        <span className="tu-diff-text">{d.line || '\u00A0'}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )
+            },
+            randtext: {
+                title: 'Random Text Generator',
+                color: 'amber',
+                content: (
+                    <div style={{ padding: '0.85rem 1.1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        <div className="tu-gen-row">
+                            <label className="tu-fmt-check">
+                                <input type="radio" name="tgt" value="words" checked={textGenType === 'words'}
+                                    onChange={() => setTextGenType('words')} /> Words
+                            </label>
+                            <label className="tu-fmt-check">
+                                <input type="radio" name="tgt" value="sentences" checked={textGenType === 'sentences'}
+                                    onChange={() => setTextGenType('sentences')} /> Sentences
+                            </label>
+                            <label className="tu-fmt-check">
+                                <input type="radio" name="tgt" value="paragraphs" checked={textGenType === 'paragraphs'}
+                                    onChange={() => setTextGenType('paragraphs')} /> Paragraphs
+                            </label>
+                        </div>
+                        <div className="tu-gen-row">
+                            <span style={{ fontSize: '0.8rem', color: 'var(--text-2)' }}>Count:</span>
+                            <input type="number" className="tu-gen-number" min="1" max="10000"
+                                value={textGenCount}
+                                onChange={e => {
+                                    const v = Math.min(10000, Math.max(1, Number(e.target.value)))
+                                    setTextGenCount(v)
+                                }} />
+                            {textGenCount >= 10000 && (
+                                <span style={{ fontSize: '0.72rem', color: 'var(--amber)', fontWeight: 600 }}>
+                                    ⚠ Max limit reached
+                                </span>
+                            )}
+                            <button className="tu-btn tu-btn--gen" onClick={handleGenerateText}>Generate</button>
+                        </div>
+                    </div>
+                )
+            },
+            password: {
+                title: 'Password Generator',
+                color: 'amber',
+                content: (
+                    <div style={{ padding: '0.85rem 1.1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        <div className="tu-gen-row">
+                            <span style={{ fontSize: '0.8rem', color: 'var(--text-2)' }}>Length:</span>
+                            <input type="number" className="tu-gen-number" min="4" max="128"
+                                value={pwdLen} onChange={e => setPwdLen(Number(e.target.value))} />
+                        </div>
+                        <div className="tu-gen-row" style={{ flexWrap: 'wrap', gap: '0.5rem 1.25rem' }}>
+                            {[['upper','A–Z'],['lower','a–z'],['numbers','0–9'],['symbols','!@#…']].map(([k, lbl]) => (
+                                <label key={k} className="tu-fmt-check">
+                                    <input type="checkbox" checked={pwdOpts[k]}
+                                        onChange={e => setPwdOpts(o => ({ ...o, [k]: e.target.checked }))} />
+                                    {lbl}
+                                </label>
+                            ))}
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                            <button className="tu-btn tu-btn--gen" onClick={handleGeneratePassword}>Generate</button>
+                        </div>
+                        {generatedPwd && (
+                            <div className="tu-pwd-output">
+                                <span className="tu-pwd-value">{generatedPwd}</span>
+                                <button className="tu-btn tu-btn--clip" style={{ flexShrink: 0 }}
+                                    onClick={() => { navigator.clipboard.writeText(generatedPwd); props.showAlert('Password copied', 'success') }}>
+                                    Copy
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )
+            },
+            fmt: {
+                title: 'Formatter Settings',
+                color: 'slate',
+                content: (
+                    <div>
+                        <div className="tu-fmt-section-label">Indentation</div>
+                        <div className="tu-fmt-grid">
+                            <label className="tu-fmt-field">
+                                <span>Tab width</span>
+                                <select value={pendingFmtCfg.tabWidth} onChange={e => setPendingFmt({ tabWidth: Number(e.target.value) })}>
+                                    {[2, 4].map(n => <option key={n} value={n}>{n}</option>)}
+                                </select>
+                            </label>
+                            <label className="tu-fmt-check">
+                                <input type="checkbox" checked={pendingFmtCfg.useTabs}
+                                    onChange={e => setPendingFmt({ useTabs: e.target.checked })} />
+                                Use tabs
+                            </label>
+                        </div>
+                        <div className="tu-fmt-section-label">Syntax</div>
+                        <div className="tu-fmt-checks">
+                            <label className="tu-fmt-check">
+                                <input type="checkbox" checked={pendingFmtCfg.semi}
+                                    onChange={e => setPendingFmt({ semi: e.target.checked })} />
+                                Semicolons
+                            </label>
+                            <label className="tu-fmt-check">
+                                <input type="checkbox" checked={pendingFmtCfg.singleQuote}
+                                    onChange={e => setPendingFmt({ singleQuote: e.target.checked })} />
+                                Single quotes
+                            </label>
+                            <label className="tu-fmt-check">
+                                <input type="checkbox" checked={pendingFmtCfg.bracketSpacing}
+                                    onChange={e => setPendingFmt({ bracketSpacing: e.target.checked })} />
+                                Bracket spacing
+                            </label>
+                            <label className="tu-fmt-check">
+                                <input type="checkbox" checked={pendingFmtCfg.jsxSingleQuote}
+                                    onChange={e => setPendingFmt({ jsxSingleQuote: e.target.checked })} />
+                                JSX single quotes
+                            </label>
+                            <label className="tu-fmt-check">
+                                <input type="checkbox" checked={pendingFmtCfg.sortImports}
+                                    onChange={e => setPendingFmt({ sortImports: e.target.checked })} />
+                                Sort imports
+                            </label>
+                        </div>
+                        <div className="tu-fmt-section-label">Trailing commas</div>
+                        <div className="tu-fmt-grid">
+                            <label className="tu-fmt-field">
+                                <select value={pendingFmtCfg.trailingComma}
+                                    onChange={e => setPendingFmt({ trailingComma: e.target.value })}>
+                                    {['none','es5','all'].map(v => <option key={v} value={v}>{v}</option>)}
+                                </select>
+                            </label>
+                            <label className="tu-fmt-field">
+                                <span>Arrow parens</span>
+                                <select value={pendingFmtCfg.arrowParens}
+                                    onChange={e => setPendingFmt({ arrowParens: e.target.value })}>
+                                    {['always','avoid'].map(v => <option key={v} value={v}>{v}</option>)}
+                                </select>
+                            </label>
+                        </div>
+                        <div className="tu-fmt-presets">
+                            <span className="tu-fmt-preset-label">Presets:</span>
+                            <button className="tu-btn tu-btn--dev" onClick={() => setPendingFmtCfg({ ...defaultFmtCfg })}>Default</button>
+                            <button className="tu-btn tu-btn--dev" onClick={() => setPendingFmtCfg({ ...defaultFmtCfg, singleQuote: true, semi: false, trailingComma: 'all' })}>Airbnb</button>
+                            <button className="tu-btn tu-btn--dev" onClick={() => setPendingFmtCfg({ ...defaultFmtCfg, tabWidth: 4, singleQuote: true, semi: false })}>Standard</button>
+                        </div>
+                        <div className="tu-fmt-actions">
+                            <button className="tu-btn tu-btn--dev" onClick={() => { setPendingFmtCfg(fmtCfg); setActivePanel(null) }}>Cancel</button>
+                            <button className="tu-btn tu-btn--apply" onClick={() => { setFmtCfg(pendingFmtCfg); setActivePanel(null); props.showAlert('Formatter settings applied', 'success') }}>Apply</button>
+                        </div>
+                    </div>
+                )
+            }
+        }
+
+        const p = panels[activePanel]
+        if (!p) return null
+
+        const drawerColors = {
+            teal:   { bg: 'rgba(20,184,166,0.08)',  border: '#14B8A6', text: '#0f766e' },
+            purple: { bg: 'rgba(168,85,247,0.08)',  border: '#A855F7', text: '#7c3aed' },
+            amber:  { bg: 'rgba(245,158,11,0.08)',  border: '#F59E0B', text: '#b45309' },
+            slate:  { bg: 'rgba(99,102,241,0.07)',  border: 'var(--violet)', text: 'var(--violet)' },
+        }
+        const dc = drawerColors[p.color] || drawerColors.slate
+
+        return (
+            <div className="tu-drawer" style={{ borderColor: dc.border }}>
+                <div className="tu-drawer-header" style={{ background: dc.bg, borderBottomColor: dc.border }}>
+                    <span className="tu-drawer-title" style={{ color: dc.text }}>{p.title}</span>
+                    <button className="tu-drawer-close" onClick={() => setActivePanel(null)} title="Close">✕</button>
+                </div>
+                <div className="tu-drawer-body">{p.content}</div>
+            </div>
+        )
+    }
 
     return (
         <div className="tu-workspace">
@@ -396,565 +646,200 @@ export default function TextForm(props) {
                 <h1 className="tu-hero-title">
                     Transform Your <span className="tu-gradient-text">Text</span>
                 </h1>
-                <p className="tu-hero-sub">
-                    Powerful utilities &mdash; instant results.
-                </p>
+                <p className="tu-hero-sub">Powerful utilities &mdash; instant results.</p>
             </div>
 
             {/* Editor card */}
             <div className="tu-editor-card">
                 <div className="tu-editor-topbar">
-                    <div className="tu-dots">
-                        <span /><span /><span />
-                    </div>
+                    <div className="tu-dots"><span /><span /><span /></div>
                     <span className="tu-editor-label">Text Editor</span>
+                    {/* Stats chips */}
+                    <div className="tu-topbar-stats">
+                        <span className="tu-topbar-stat"><b>{words}</b> words</span>
+                        <span className="tu-topbar-stat"><b>{chars}</b> chars</span>
+                        <span className="tu-topbar-stat"><b>{charsNoSpaces}</b> no-space</span>
+                        <span className="tu-topbar-stat"><b>{sentences}</b> sentences</span>
+                        <span className="tu-topbar-stat"><b>{(words / 125).toFixed(1)}</b> min read</span>
+                    </div>
                 </div>
 
-                <textarea
-                    className={`tu-textarea${dyslexiaMode ? ' tu-dyslexia' : ''}`}
-                    id="text"
-                    rows="10"
-                    value={text}
-                    onChange={handleChange}
-                    placeholder="Start typing or paste your text here\u2026"
-                />
-
-                <div className="tu-actions">
-
-                    {/* Case Transformations */}
-                    <div className="tu-action-group">
-                        <p className="tu-group-label">Case Transformations</p>
-                        <div className="tu-btn-row">
-                            <button disabled={disabled} className="tu-btn tu-btn--case"
-                                onClick={() => callApi(textService.toUpperCase, 'Converted to uppercase')}>
-                                Uppercase
-                            </button>
-                            <button disabled={disabled} className="tu-btn tu-btn--case"
-                                onClick={() => callApi(textService.toLowerCase, 'Converted to lowercase')}>
-                                Lowercase
-                            </button>
-                            <button disabled={disabled} className="tu-btn tu-btn--case"
-                                onClick={() => callApi(textService.toTitleCase, 'Converted to title case')}>
-                                Title Case
-                            </button>
-                            <button disabled={disabled} className="tu-btn tu-btn--case"
-                                onClick={() => callApi(textService.toSentenceCase, 'Converted to sentence case')}>
-                                Sentence Case
-                            </button>
-                            <button disabled={disabled} className="tu-btn tu-btn--case"
-                                onClick={() => callApi(textService.toInverseCase, 'Case toggled')}>
-                                Toggle Case
-                            </button>
-                            <button disabled={disabled} className="tu-btn tu-btn--case"
-                                onClick={() => callApi(textService.toUpperCamelCase, 'Converted to UpperCamelCase')}>
-                                UpperCamelCase
-                            </button>
-                            <button disabled={disabled} className="tu-btn tu-btn--case"
-                                onClick={() => callApi(textService.toLowerCamelCase, 'Converted to lowerCamelCase')}>
-                                lowerCamelCase
-                            </button>
-                        </div>
+                {markdownMode ? (
+                    <div className="tu-preview-body" style={{ minHeight: 200 }}>
+                        {text
+                            ? <div className="tu-preview-markdown" dangerouslySetInnerHTML={{ __html: marked.parse(text) }} />
+                            : <span className="tu-preview-empty">Markdown preview will appear here…</span>
+                        }
                     </div>
-
-                    {/* Whitespace */}
-                    <div className="tu-action-group">
-                        <p className="tu-group-label">Whitespace</p>
-                        <div className="tu-btn-row">
-                            <button disabled={disabled} className="tu-btn tu-btn--space"
-                                onClick={() => callApi(textService.removeExtraSpaces, 'Removed extra spaces')}>
-                                Remove Extra Spaces
-                            </button>
-                            <button disabled={disabled} className="tu-btn tu-btn--space"
-                                onClick={() => callApi(textService.removeLineBreaks, 'Removed line breaks')}>
-                                Remove Line Breaks
-                            </button>
-                            <button disabled={disabled} className="tu-btn tu-btn--space"
-                                onClick={() => callApi(textService.removeAllSpaces, 'Removed all spaces')}>
-                                Remove All Spaces
-                            </button>
-                            <button disabled={disabled} className="tu-btn tu-btn--space"
-                                onClick={handleMinify}>
-                                Minify
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Text Tools */}
-                    <div className="tu-action-group">
-                        <p className="tu-group-label">Text Tools</p>
-                        <div className="tu-btn-row">
-                            <button disabled={disabled} className="tu-btn tu-btn--tools"
-                                onClick={handleReverseText}>
-                                Reverse Text
-                            </button>
-                            <button disabled={disabled} className="tu-btn tu-btn--tools"
-                                onClick={handleSortAsc}>
-                                Sort A &rarr; Z
-                            </button>
-                            <button disabled={disabled} className="tu-btn tu-btn--tools"
-                                onClick={handleSortDesc}>
-                                Sort Z &rarr; A
-                            </button>
-                            <button disabled={disabled} className="tu-btn tu-btn--tools"
-                                onClick={handleRemoveDuplicates}>
-                                Remove Duplicates
-                            </button>
-                            <button
-                                className={`tu-btn ${showFindReplace ? 'tu-btn--tools-active' : 'tu-btn--tools'}`}
-                                onClick={() => { setShowFindReplace(p => !p); setReplaceCount(null) }}>
-                                {showFindReplace ? 'Hide Find & Replace' : 'Find & Replace'}
-                            </button>
-                        </div>
-
-                        {showFindReplace && (
-                            <div className="tu-find-panel">
-                                <div className="tu-find-panel-header">
-                                    <span className="tu-find-panel-title">Find &amp; Replace</span>
-                                    <span className="tu-find-panel-desc">Search and replace text — supports plain text and regular expressions.</span>
-                                </div>
-                                <div className="tu-find-inputs">
-                                    <input
-                                        className="tu-find-input"
-                                        placeholder="Find…"
-                                        value={findText}
-                                        onChange={e => { setFindText(e.target.value); setReplaceCount(null) }}
-                                    />
-                                    <input
-                                        className="tu-find-input"
-                                        placeholder="Replace with… (leave empty to delete)"
-                                        value={replaceText}
-                                        onChange={e => setReplaceText(e.target.value)}
-                                    />
-                                </div>
-                                <div className="tu-find-footer">
-                                    <div className="tu-find-flags">
-                                        <label className="tu-fmt-check">
-                                            <input type="checkbox" checked={findCaseSensitive}
-                                                onChange={e => setFindCaseSensitive(e.target.checked)} />
-                                            <span>Case Sensitive</span>
-                                        </label>
-                                        <label className="tu-fmt-check">
-                                            <input type="checkbox" checked={findUseRegex}
-                                                onChange={e => setFindUseRegex(e.target.checked)} />
-                                            <span>Regex</span>
-                                        </label>
-                                        {replaceCount !== null && (
-                                            <span className="tu-find-count">
-                                                {replaceCount} replacement{replaceCount !== 1 ? 's' : ''} made
-                                            </span>
-                                        )}
-                                    </div>
-                                    <button disabled={disabled} className="tu-btn tu-btn--tools-active"
-                                        onClick={handleReplaceAll}>
-                                        Replace All
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Encoding */}
-                    <div className="tu-action-group">
-                        <p className="tu-group-label">Encoding</p>
-                        <div className="tu-btn-row">
-                            <button disabled={disabled} className="tu-btn tu-btn--encode"
-                                onClick={handleBase64Encode}>
-                                Base64 Encode
-                            </button>
-                            <button disabled={disabled} className="tu-btn tu-btn--encode"
-                                onClick={handleBase64Decode}>
-                                Base64 Decode
-                            </button>
-                            <button disabled={disabled} className="tu-btn tu-btn--encode"
-                                onClick={handleUrlEncode}>
-                                URL Encode
-                            </button>
-                            <button disabled={disabled} className="tu-btn tu-btn--encode"
-                                onClick={handleUrlDecode}>
-                                URL Decode
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Developer Tools */}
-                    <div className="tu-action-group">
-                        <p className="tu-group-label">Developer Tools</p>
-
-                        {/* Data sub-group */}
-                        <p className="tu-group-sublabel">Data</p>
-                        <div className="tu-btn-row">
-                            <button disabled={disabled} className="tu-btn tu-btn--dev"
-                                onClick={handleJsonFormat}>
-                                Format JSON
-                            </button>
-                            <button disabled={disabled} className="tu-btn tu-btn--dev"
-                                onClick={handleJsonToYaml}>
-                                JSON &rarr; YAML
-                            </button>
-                        </div>
-
-                        {/* Code Formatters sub-group */}
-                        <p className="tu-group-sublabel">Code Formatters</p>
-                        <p className="tu-fmt-hint">
-                            Paste your code above &rarr; optionally configure settings &rarr; click a format button
-                        </p>
-                        <div className="tu-btn-row">
-                            <button disabled={disabled} className="tu-btn tu-btn--dev"
-                                onClick={handleFormatHtml}>
-                                Format HTML
-                            </button>
-                            <button disabled={disabled} className="tu-btn tu-btn--dev"
-                                onClick={handleFormatCss}>
-                                Format CSS
-                            </button>
-                            <button disabled={disabled} className="tu-btn tu-btn--dev"
-                                onClick={handleFormatJs}>
-                                Format JS / JSX
-                            </button>
-                            <button disabled={disabled} className="tu-btn tu-btn--dev"
-                                onClick={handleFormatTs}>
-                                Format TS
-                            </button>
-                            <button
-                                className={`tu-btn ${showFmtCfg ? 'tu-btn--dev-active' : 'tu-btn--dev'}`}
-                                onClick={() => {
-                                    if (!showFmtCfg) setPendingFmtCfg(fmtCfg)
-                                    setShowFmtCfg(p => !p)
-                                }}>
-                                ⚙ {showFmtCfg ? 'Hide Settings' : 'Formatter Settings'}
-                            </button>
-                        </div>
-
-                        {/* Formatter Settings Panel */}
-                        {showFmtCfg && (
-                            <div className="tu-fmt-cfg">
-                                <div className="tu-fmt-cfg-header">
-                                    <span className="tu-fmt-cfg-title">⚙ Formatter Settings</span>
-                                    <span className="tu-fmt-cfg-desc">Customize code style. Click Apply to save — settings take effect on next format.</span>
-                                </div>
-
-                                <div className="tu-fmt-section-label">Options</div>
-                                <div className="tu-fmt-grid">
-                                    <label className="tu-fmt-field">
-                                        <span>Tab Width</span>
-                                        <select value={pendingFmtCfg.tabWidth}
-                                            onChange={e => setPendingFmt({ tabWidth: +e.target.value })}>
-                                            <option value={2}>2 spaces</option>
-                                            <option value={4}>4 spaces</option>
-                                            <option value={8}>8 spaces</option>
-                                        </select>
-                                    </label>
-                                    <label className="tu-fmt-field">
-                                        <span>Quotes</span>
-                                        <select value={pendingFmtCfg.singleQuote ? 'single' : 'double'}
-                                            onChange={e => setPendingFmt({ singleQuote: e.target.value === 'single' })}>
-                                            <option value="double">Double (")</option>
-                                            <option value="single">Single (')</option>
-                                        </select>
-                                    </label>
-                                    <label className="tu-fmt-field">
-                                        <span>Trailing Comma</span>
-                                        <select value={pendingFmtCfg.trailingComma}
-                                            onChange={e => setPendingFmt({ trailingComma: e.target.value })}>
-                                            <option value="none">None</option>
-                                            <option value="es5">ES5</option>
-                                            <option value="all">All</option>
-                                        </select>
-                                    </label>
-                                    <label className="tu-fmt-field">
-                                        <span>Arrow Parens</span>
-                                        <select value={pendingFmtCfg.arrowParens}
-                                            onChange={e => setPendingFmt({ arrowParens: e.target.value })}>
-                                            <option value="always">Always</option>
-                                            <option value="avoid">Avoid</option>
-                                        </select>
-                                    </label>
-                                </div>
-
-                                <div className="tu-fmt-section-label">Flags</div>
-                                <div className="tu-fmt-checks">
-                                    {[
-                                        ['useTabs',        'Use Tabs (instead of spaces)'],
-                                        ['semi',           'Semicolons at end of statements'],
-                                        ['bracketSpacing', 'Bracket Spacing  { a: 1 }'],
-                                        ['jsxSingleQuote', 'JSX Single Quotes'],
-                                        ['sortImports',    'Sort Imports A–Z'],
-                                    ].map(([key, label]) => (
-                                        <label className="tu-fmt-check" key={key}>
-                                            <input type="checkbox" checked={pendingFmtCfg[key]}
-                                                onChange={e => setPendingFmt({ [key]: e.target.checked })} />
-                                            <span>{label}</span>
-                                        </label>
-                                    ))}
-                                </div>
-
-                                <div className="tu-fmt-presets">
-                                    <span className="tu-fmt-preset-label">Quick Presets:</span>
-                                    <button className="tu-btn tu-btn--dev" onClick={() => setPendingFmt({ trailingComma: 'none',  arrowParens: 'avoid',  semi: true,  singleQuote: false })}>ES5</button>
-                                    <button className="tu-btn tu-btn--dev" onClick={() => setPendingFmt({ trailingComma: 'es5',   arrowParens: 'always', semi: true,  singleQuote: true  })}>ES6</button>
-                                    <button className="tu-btn tu-btn--dev" onClick={() => setPendingFmt({ trailingComma: 'all',   arrowParens: 'always', semi: false, singleQuote: true, jsxSingleQuote: false })}>React</button>
-                                </div>
-
-                                <div className="tu-fmt-actions">
-                                    <button className="tu-btn tu-btn--dev"
-                                        onClick={() => { setPendingFmtCfg(fmtCfg); setShowFmtCfg(false) }}>
-                                        Cancel
-                                    </button>
-                                    <button className="tu-btn tu-btn--apply"
-                                        onClick={() => {
-                                            setFmtCfg(pendingFmtCfg)
-                                            setShowFmtCfg(false)
-                                            props.showAlert('Formatter settings applied', 'success')
-                                        }}>
-                                        ✓ Apply Settings
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Text Compare */}
-                    <div className="tu-action-group">
-                        <p className="tu-group-label">Text Compare</p>
-                        <p className="tu-fmt-hint">Original text is taken from the editor above. Paste the text to compare below, then click Compare.</p>
-                        <textarea
-                            className="tu-textarea tu-compare-textarea"
-                            rows="5"
-                            value={compareText}
-                            onChange={e => { setCompareText(e.target.value); setDiffResult(null) }}
-                            placeholder="Paste comparison text here…"
-                        />
-                        <div className="tu-btn-row" style={{ marginTop: '0.5rem' }}>
-                            <button
-                                disabled={!text || !compareText}
-                                className="tu-btn tu-btn--compare"
-                                onClick={handleCompare}>
-                                Compare
-                            </button>
-                            <button
-                                disabled={!compareText && !diffResult}
-                                className="tu-btn tu-btn--dev"
-                                onClick={() => { setCompareText(''); setDiffResult(null) }}>
-                                Clear
-                            </button>
-                        </div>
-                        {diffResult && (
-                            <div className="tu-diff-output">
-                                <div className="tu-diff-legend">
-                                    <span className="tu-diff-badge tu-diff-badge--added">+ Added</span>
-                                    <span className="tu-diff-badge tu-diff-badge--removed">- Removed</span>
-                                    <span className="tu-diff-badge tu-diff-badge--same">= Same</span>
-                                    <span className="tu-diff-stats">
-                                        {diffResult.filter(d => d.type === 'added').length} added &nbsp;·&nbsp;
-                                        {diffResult.filter(d => d.type === 'removed').length} removed &nbsp;·&nbsp;
-                                        {diffResult.filter(d => d.type === 'same').length} unchanged
-                                    </span>
-                                </div>
-                                {diffResult.map((item, idx) => (
-                                    <div key={idx} className={`tu-diff-line tu-diff-line--${item.type}`}>
-                                        <span className="tu-diff-marker">
-                                            {item.type === 'added' ? '+' : item.type === 'removed' ? '-' : ' '}
-                                        </span>
-                                        <span className="tu-diff-text">{item.line || '\u00a0'}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Generators */}
-                    <div className="tu-action-group">
-                        <p className="tu-group-label">Generators</p>
-
-                        <p className="tu-group-sublabel">Random Text</p>
-                        <div className="tu-gen-row">
-                            <label className="tu-fmt-field">
-                                <span>Type</span>
-                                <select value={textGenType} onChange={e => setTextGenType(e.target.value)}>
-                                    <option value="words">Words</option>
-                                    <option value="sentences">Sentences</option>
-                                    <option value="paragraphs">Paragraphs</option>
-                                </select>
-                            </label>
-                            <label className="tu-fmt-field">
-                                <span>Count</span>
-                                <input
-                                    className="tu-gen-number"
-                                    type="number" min={1} max={10000}
-                                    value={textGenCount}
-                                    onChange={e => {
-                                        const val = +e.target.value
-                                        if (val > 10000) {
-                                            props.showAlert('Maximum is 10,000 — value clamped', 'danger')
-                                            setTextGenCount(10000)
-                                        } else {
-                                            setTextGenCount(Math.max(1, val))
-                                        }
-                                    }}
-                                />
-                            </label>
-                            <button className="tu-btn tu-btn--gen" onClick={handleGenerateText}>
-                                Generate
-                            </button>
-                        </div>
-
-                        <p className="tu-group-sublabel" style={{ marginTop: '1rem' }}>Password</p>
-                        <div className="tu-gen-row tu-gen-row--wrap">
-                            <label className="tu-fmt-field">
-                                <span>Length</span>
-                                <input
-                                    className="tu-gen-number"
-                                    type="number" min={4} max={128}
-                                    value={pwdLen}
-                                    onChange={e => setPwdLen(Math.max(4, Math.min(128, +e.target.value)))}
-                                />
-                            </label>
-                            {[['upper','A-Z'],['lower','a-z'],['numbers','0-9'],['symbols','!@#…']].map(([k, lbl]) => (
-                                <label key={k} className="tu-fmt-check">
-                                    <input type="checkbox" checked={pwdOpts[k]}
-                                        onChange={e => setPwdOpts(p => ({ ...p, [k]: e.target.checked }))} />
-                                    <span>{lbl}</span>
-                                </label>
-                            ))}
-                            <button className="tu-btn tu-btn--gen" onClick={handleGeneratePassword}>
-                                Generate
-                            </button>
-                        </div>
-                        {generatedPwd && (
-                            <div className="tu-pwd-output">
-                                <code className="tu-pwd-value">{generatedPwd}</code>
-                                <button className="tu-btn tu-btn--clip"
-                                    onClick={() => { navigator.clipboard.writeText(generatedPwd); props.showAlert('Password copied!', 'success') }}>
-                                    Copy
-                                </button>
-                                <button className="tu-btn tu-btn--gen" onClick={handleGeneratePassword}>
-                                    Regenerate
-                                </button>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Clipboard */}
-                    <div className="tu-action-group">
-                        <p className="tu-group-label">Clipboard</p>
-                        <div className="tu-btn-row">
-                            <button disabled={disabled} className="tu-btn tu-btn--clip"
-                                onClick={handleCopy}>
-                                Copy
-                            </button>
-                            <button disabled={loading} className="tu-btn tu-btn--clip"
-                                onClick={handlePaste}>
-                                Paste
-                            </button>
-                            <button disabled={loading} className="tu-btn tu-btn--clip"
-                                onClick={handleClearPaste}>
-                                Clear &amp; Paste
-                            </button>
-                            <button disabled={text.length === 0} className="tu-btn tu-btn--danger"
-                                onClick={handleClear}>
-                                Clear
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Speech */}
-                    <div className="tu-action-group">
-                        <p className="tu-group-label">Speech</p>
-                        <div className="tu-btn-row">
-                            <button disabled={disabled} className="tu-btn tu-btn--amber"
-                                onClick={handleTts}>
-                                Text to Speech
-                            </button>
-                            <button
-                                className={`tu-btn ${listening ? 'tu-btn--listening' : 'tu-btn--stt'}`}
-                                onClick={handleSpeechToText}>
-                                {listening ? 'Stop Listening' : 'Speech to Text'}
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Accessibility */}
-                    <div className="tu-action-group">
-                        <p className="tu-group-label">Accessibility</p>
-                        <div className="tu-btn-row">
-                            <button
-                                className={`tu-btn ${dyslexiaMode ? 'tu-btn--dyslexia-on' : 'tu-btn--dyslexia'}`}
-                                onClick={handleDyslexiaMode}>
-                                {dyslexiaMode ? 'Dyslexia Font: ON' : 'Dyslexia Font'}
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Export & Share */}
-                    <div className="tu-action-group">
-                        <p className="tu-group-label">Export &amp; Share</p>
-                        <div className="tu-btn-row">
-                            <button disabled={disabled} className="tu-btn tu-btn--export"
-                                onClick={handleDownloadTxt}>
-                                Download TXT
-                            </button>
-                            <button disabled={disabled} className="tu-btn tu-btn--export"
-                                onClick={handleDownloadPdf}>
-                                Download PDF
-                            </button>
-                            <button disabled={disabled} className="tu-btn tu-btn--export"
-                                onClick={handleDownloadDocx}>
-                                Download DOCX
-                            </button>
-                            <button disabled={disabled} className="tu-btn tu-btn--export"
-                                onClick={handleDownloadJson}>
-                                Download JSON
-                            </button>
-                            <button disabled={disabled} className="tu-btn tu-btn--share"
-                                onClick={handleShare}>
-                                Share Link
-                            </button>
-                        </div>
-                    </div>
-
-                </div>
+                ) : (
+                    <textarea
+                        className={`tu-textarea${dyslexiaMode ? ' tu-dyslexia' : ''}`}
+                        id="text"
+                        rows="10"
+                        value={text}
+                        onChange={handleChange}
+                        placeholder="Start typing or paste your text here…"
+                    />
+                )}
 
                 {loading && (
                     <div className="tu-loading">
                         <div className="tu-spinner" />
-                        Processing&hellip;
+                        <span>Processing…</span>
                     </div>
                 )}
-            </div>
 
-            {/* Stats */}
-            <div className="tu-stats">
-                {stats.map(({ label, value }) => (
-                    <div className="tu-stat-card" key={label}>
-                        <span className="tu-stat-value">{value}</span>
-                        <span className="tu-stat-label">{label}</span>
+                {/* ── Tile Grid ────────────────────────────────────────── */}
+                <div className="tu-tile-grid">
+
+                    {/* Transform */}
+                    <div className="tu-tile-section">
+                        <span className="tu-tile-sec-label" style={{ color: '#7C3AED' }}>✦ Transform</span>
+                        <div className="tu-tile-row">
+                            <Tile icon="AA" label="Uppercase" color="violet" disabled={disabled}
+                                onClick={() => callApi(textService.toUpperCase, 'Converted to uppercase')} />
+                            <Tile icon="aa" label="Lowercase" color="violet" disabled={disabled}
+                                onClick={() => callApi(textService.toLowerCase, 'Converted to lowercase')} />
+                            <Tile icon="Tt" label="Title Case" color="violet" disabled={disabled}
+                                onClick={() => callApi(textService.toTitleCase, 'Converted to title case')} />
+                            <Tile icon="Ss." label="Sentence" color="violet" disabled={disabled}
+                                onClick={() => callApi(textService.toSentenceCase, 'Converted to sentence case')} />
+                            <Tile icon="aA" label="Toggle" color="violet" disabled={disabled}
+                                onClick={() => callApi(textService.toInverseCase, 'Case toggled')} />
+                            <Tile icon="PP" label="PascalCase" color="violet" disabled={disabled}
+                                onClick={() => callApi(textService.toUpperCamelCase, 'Converted to PascalCase')} />
+                            <Tile icon="cc" label="camelCase" color="violet" disabled={disabled}
+                                onClick={() => callApi(textService.toLowerCamelCase, 'Converted to camelCase')} />
+                        </div>
                     </div>
-                ))}
-            </div>
 
-            {/* Preview */}
-            <div className="tu-preview-card">
-                <div className="tu-preview-header">
-                    <span className="tu-preview-title">Preview</span>
-                    <button
-                        className={`tu-btn tu-btn--preview-toggle ${markdownMode ? 'tu-btn--preview-on' : ''}`}
-                        onClick={handleMarkdownMode}>
-                        {markdownMode ? 'Markdown: ON' : 'Markdown'}
-                    </button>
+                    {/* Whitespace */}
+                    <div className="tu-tile-section">
+                        <span className="tu-tile-sec-label" style={{ color: '#64748B' }}>⎵ Whitespace</span>
+                        <div className="tu-tile-row">
+                            <Tile icon="⎵→" label="Trim Extra" color="slate" disabled={disabled}
+                                onClick={() => callApi(textService.removeExtraSpaces, 'Extra spaces removed')} />
+                            <Tile icon="↵✕" label="No Breaks" color="slate" disabled={disabled}
+                                onClick={() => callApi(textService.removeLineBreaks, 'Line breaks removed')} />
+                            <Tile icon="✕⎵" label="Strip All" color="slate" disabled={disabled}
+                                onClick={() => callApi(textService.removeAllSpaces, 'All spaces removed')} />
+                            <Tile icon="≡" label="Minify" color="slate" disabled={disabled}
+                                onClick={() => callApi(textService.minify, 'Text minified')} />
+                        </div>
+                    </div>
+
+                    {/* Text Tools */}
+                    <div className="tu-tile-section">
+                        <span className="tu-tile-sec-label" style={{ color: '#14B8A6' }}>⚙ Text Tools</span>
+                        <div className="tu-tile-row">
+                            <Tile icon="⟲" label="Reverse" color="teal" disabled={disabled}
+                                onClick={handleReverseText} />
+                            <Tile icon="A↑Z" label="Sort A→Z" color="teal" disabled={disabled}
+                                onClick={handleSortAsc} />
+                            <Tile icon="Z↓A" label="Sort Z→A" color="teal" disabled={disabled}
+                                onClick={handleSortDesc} />
+                            <Tile icon="⊟" label="Deduplicate" color="teal" disabled={disabled}
+                                onClick={handleRemoveDuplicates} />
+                            <Tile icon="⌕↺" label="Find & Replace" color="teal"
+                                active={activePanel === 'find'}
+                                onClick={() => togglePanel('find')} />
+                        </div>
+                    </div>
+
+                    {/* Encoding */}
+                    <div className="tu-tile-section">
+                        <span className="tu-tile-sec-label" style={{ color: '#6366F1' }}>⇌ Encoding</span>
+                        <div className="tu-tile-row">
+                            <Tile icon="64↑" label="Base64 Enc" color="indigo" disabled={disabled}
+                                onClick={handleBase64Encode} />
+                            <Tile icon="64↓" label="Base64 Dec" color="indigo" disabled={disabled}
+                                onClick={handleBase64Decode} />
+                            <Tile icon="%+" label="URL Encode" color="indigo" disabled={disabled}
+                                onClick={handleUrlEncode} />
+                            <Tile icon="%-" label="URL Decode" color="indigo" disabled={disabled}
+                                onClick={handleUrlDecode} />
+                        </div>
+                    </div>
+
+                    {/* Developer */}
+                    <div className="tu-tile-section">
+                        <span className="tu-tile-sec-label" style={{ color: '#475569' }}>{ } Developer</span>
+                        <div className="tu-tile-row">
+                            <Tile icon="{}" label="JSON Fmt" color="gray" disabled={disabled}
+                                onClick={handleJsonFormat} />
+                            <Tile icon="→Y" label="JSON→YAML" color="gray" disabled={disabled}
+                                onClick={handleJsonToYaml} />
+                            <Tile icon="<>" label="HTML Fmt" color="gray" disabled={disabled}
+                                onClick={handleFormatHtml} />
+                            <Tile icon="#:" label="CSS Fmt" color="gray" disabled={disabled}
+                                onClick={handleFormatCss} />
+                            <Tile icon="JS" label="JS Fmt" color="gray" disabled={disabled}
+                                onClick={handleFormatJs} />
+                            <Tile icon="TS" label="TS Fmt" color="gray" disabled={disabled}
+                                onClick={handleFormatTs} />
+                            <Tile icon="⚙" label="Fmt Settings" color="gray"
+                                active={activePanel === 'fmt'}
+                                onClick={() => togglePanel('fmt')} />
+                        </div>
+                    </div>
+
+                    {/* Compare & Generate */}
+                    <div className="tu-tile-section">
+                        <span className="tu-tile-sec-label" style={{ color: '#A855F7' }}>◈ Compare & Generate</span>
+                        <div className="tu-tile-row">
+                            <Tile icon="⇄" label="Compare" color="purple"
+                                active={activePanel === 'compare'}
+                                onClick={() => togglePanel('compare')} />
+                            <Tile icon="¶" label="Random Text" color="amber"
+                                active={activePanel === 'randtext'}
+                                onClick={() => togglePanel('randtext')} />
+                            <Tile icon="⚿" label="Password" color="amber"
+                                active={activePanel === 'password'}
+                                onClick={() => togglePanel('password')} />
+                        </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="tu-tile-section">
+                        <span className="tu-tile-sec-label" style={{ color: '#10B981' }}>↯ Actions</span>
+                        <div className="tu-tile-row">
+                            <Tile icon="⧉" label="Copy" color="emerald" disabled={disabled}
+                                onClick={handleCopy} />
+                            <Tile icon="⊞" label="Paste" color="emerald"
+                                onClick={handlePaste} />
+                            <Tile icon="⊟⊞" label="Clear+Paste" color="emerald"
+                                onClick={handleClearPaste} />
+                            <Tile icon="⌫" label="Clear" color="rose" disabled={disabled}
+                                onClick={handleClear} />
+                            <Tile icon="▶" label="Read Aloud" color="amber" disabled={disabled}
+                                onClick={handleTts} />
+                            <Tile icon={listening ? '◉' : '◎'} label={listening ? 'Stop Mic' : 'Speech→Text'}
+                                color={listening ? 'rose' : 'emerald'}
+                                active={listening}
+                                onClick={handleSpeechToText} />
+                            <Tile icon="Oo" label="Dyslexia" color="violet"
+                                active={dyslexiaMode}
+                                onClick={handleDyslexiaMode} />
+                            <Tile icon="MD" label="Markdown" color="indigo"
+                                active={markdownMode}
+                                onClick={handleMarkdownMode} />
+                            <Tile icon=".txt" label="Save TXT" color="gray" disabled={disabled}
+                                onClick={handleDownloadTxt} />
+                            <Tile icon=".pdf" label="Save PDF" color="gray" disabled={disabled}
+                                onClick={handleDownloadPdf} />
+                            <Tile icon=".doc" label="Save DOCX" color="gray" disabled={disabled}
+                                onClick={handleDownloadDocx} />
+                            <Tile icon="{↓}" label="Save JSON" color="gray" disabled={disabled}
+                                onClick={handleDownloadJson} />
+                            <Tile icon="↗" label="Share Link" color="indigo" disabled={disabled}
+                                onClick={handleShare} />
+                        </div>
+                    </div>
+
+                    {/* Slide-up Drawer */}
+                    {renderDrawer()}
+
                 </div>
-                {markdownMode ? (
-                    <div
-                        className={`tu-preview-body tu-preview-markdown${dyslexiaMode ? ' tu-dyslexia' : ''}`}
-                        dangerouslySetInnerHTML={{ __html: text ? marked.parse(text) : '<span class="tu-preview-empty">Nothing to preview yet…</span>' }}
-                    />
-                ) : (
-                    <div className={`tu-preview-body${dyslexiaMode ? ' tu-dyslexia' : ''}`}>
-                        {text.length > 0
-                            ? text
-                            : <span className="tu-preview-empty">Nothing to preview yet&hellip;</span>
-                        }
-                    </div>
-                )}
             </div>
         </div>
     )

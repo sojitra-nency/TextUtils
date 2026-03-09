@@ -283,6 +283,31 @@ body {
   padding: 0.85rem 1.2rem;
   border-bottom: 1px solid var(--border);
   background: var(--surface-2);
+  flex-wrap: wrap;
+}
+
+/* ── Topbar stats chips ───────────────────────────────── */
+.tu-topbar-stats {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-left: auto;
+}
+
+.tu-topbar-stat {
+  font-size: 0.6rem;
+  background: rgba(124, 58, 237, 0.07);
+  border: 1px solid rgba(124, 58, 237, 0.12);
+  border-radius: 999px;
+  padding: 0.1rem 0.45rem;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.tu-topbar-stat b {
+  color: var(--violet);
+  font-weight: 700;
 }
 
 .tu-dots {
@@ -1474,4 +1499,243 @@ body {
   .tu-actions { padding: 0.875rem 0.875rem 1rem; }
   .tu-ai-actions { padding: 0.875rem 0.875rem 1rem; }
   .tu-lang-input { width: 120px; }
+}
+
+/* ═══════════════════════════════════════════════════════
+   Tile Grid UI
+   ═══════════════════════════════════════════════════════ */
+
+.tu-tile-grid {
+  padding: 1.1rem 1.2rem 1.3rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.tu-tile-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.tu-tile-sec-label {
+  font-size: 0.58rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  opacity: 0.8;
+}
+
+.tu-tile-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+/* ── Base tile ──────────────────────────────────────── */
+.tu-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.28rem;
+  width: 76px;
+  min-height: 64px;
+  padding: 0.55rem 0.35rem 0.5rem;
+  border-radius: 12px;
+  border: 1.5px solid;
+  cursor: pointer;
+  transition: transform var(--t-spring), box-shadow 0.18s ease, background 0.15s ease, color 0.15s ease;
+  background: var(--surface);
+  font-family: inherit;
+}
+
+.tu-tile:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.tu-tile:not(:disabled):hover {
+  transform: scale(1.07) translateY(-2px);
+}
+
+.tu-tile-icon {
+  font-size: 1rem;
+  font-weight: 800;
+  font-family: 'Fira Code', 'JetBrains Mono', monospace;
+  line-height: 1;
+}
+
+.tu-tile-label {
+  font-size: 0.54rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-align: center;
+}
+
+/* ── Per-color variants ─────────────────────────────── */
+
+/* violet */
+.tu-tile--violet {
+  border-color: rgba(124, 58, 237, 0.25);
+  color: #7C3AED;
+}
+.tu-tile--violet:not(:disabled):hover,
+.tu-tile--violet.tu-tile--active {
+  background: #7C3AED;
+  border-color: #7C3AED;
+  color: white;
+  box-shadow: 0 4px 18px rgba(124, 58, 237, 0.38);
+}
+
+/* slate */
+.tu-tile--slate {
+  border-color: rgba(100, 116, 139, 0.25);
+  color: #64748B;
+}
+.tu-tile--slate:not(:disabled):hover,
+.tu-tile--slate.tu-tile--active {
+  background: #64748B;
+  border-color: #64748B;
+  color: white;
+  box-shadow: 0 4px 18px rgba(100, 116, 139, 0.35);
+}
+
+/* teal */
+.tu-tile--teal {
+  border-color: rgba(20, 184, 166, 0.28);
+  color: #0f766e;
+}
+.tu-tile--teal:not(:disabled):hover,
+.tu-tile--teal.tu-tile--active {
+  background: #14B8A6;
+  border-color: #14B8A6;
+  color: white;
+  box-shadow: 0 4px 18px rgba(20, 184, 166, 0.38);
+}
+
+/* indigo */
+.tu-tile--indigo {
+  border-color: rgba(99, 102, 241, 0.25);
+  color: #6366F1;
+}
+.tu-tile--indigo:not(:disabled):hover,
+.tu-tile--indigo.tu-tile--active {
+  background: #6366F1;
+  border-color: #6366F1;
+  color: white;
+  box-shadow: 0 4px 18px rgba(99, 102, 241, 0.38);
+}
+
+/* gray (developer) */
+.tu-tile--gray {
+  border-color: rgba(107, 114, 128, 0.22);
+  color: #475569;
+}
+.tu-tile--gray:not(:disabled):hover,
+.tu-tile--gray.tu-tile--active {
+  background: #475569;
+  border-color: #475569;
+  color: white;
+  box-shadow: 0 4px 18px rgba(71, 85, 105, 0.35);
+}
+
+/* purple */
+.tu-tile--purple {
+  border-color: rgba(168, 85, 247, 0.28);
+  color: #9333EA;
+}
+.tu-tile--purple:not(:disabled):hover,
+.tu-tile--purple.tu-tile--active {
+  background: #A855F7;
+  border-color: #A855F7;
+  color: white;
+  box-shadow: 0 4px 18px rgba(168, 85, 247, 0.38);
+}
+
+/* amber */
+.tu-tile--amber {
+  border-color: rgba(245, 158, 11, 0.28);
+  color: #b45309;
+}
+.tu-tile--amber:not(:disabled):hover,
+.tu-tile--amber.tu-tile--active {
+  background: #F59E0B;
+  border-color: #F59E0B;
+  color: white;
+  box-shadow: 0 4px 18px rgba(245, 158, 11, 0.38);
+}
+
+/* emerald */
+.tu-tile--emerald {
+  border-color: rgba(16, 185, 129, 0.25);
+  color: #059669;
+}
+.tu-tile--emerald:not(:disabled):hover,
+.tu-tile--emerald.tu-tile--active {
+  background: #10B981;
+  border-color: #10B981;
+  color: white;
+  box-shadow: 0 4px 18px rgba(16, 185, 129, 0.38);
+}
+
+/* rose */
+.tu-tile--rose {
+  border-color: rgba(244, 63, 94, 0.25);
+  color: #E11D48;
+}
+.tu-tile--rose:not(:disabled):hover,
+.tu-tile--rose.tu-tile--active {
+  background: #F43F5E;
+  border-color: #F43F5E;
+  color: white;
+  box-shadow: 0 4px 18px rgba(244, 63, 94, 0.38);
+}
+
+/* ── Slide-up Drawer ────────────────────────────────── */
+.tu-drawer {
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  animation: tu-drawer-in 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes tu-drawer-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+.tu-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.tu-drawer-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.tu-drawer-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text-3);
+  padding: 0;
+  line-height: 1;
+  transition: color var(--t);
+}
+.tu-drawer-close:hover { color: var(--rose); }
+
+.tu-drawer-body {
+  background: var(--surface);
 }
