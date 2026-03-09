@@ -70,6 +70,13 @@ export const base64Decode = (text) => post('/api/v1/text/base64-decode', { text 
 export const urlEncode    = (text) => post('/api/v1/text/url-encode',    { text });
 export const urlDecode    = (text) => post('/api/v1/text/url-decode',    { text });
 
+// ── Text Tools ────────────────────────────────────────────────────────────────
+
+export const reverseText          = (text) => post('/api/v1/text/reverse',                 { text });
+export const sortLinesAsc         = (text) => post('/api/v1/text/sort-lines-asc',          { text });
+export const sortLinesDesc        = (text) => post('/api/v1/text/sort-lines-desc',         { text });
+export const removeDuplicateLines = (text) => post('/api/v1/text/remove-duplicate-lines',  { text });
+
 // ── Developer Tools ───────────────────────────────────────────────────────────
 
 export const formatJson  = (text) => post('/api/v1/text/format-json',  { text });

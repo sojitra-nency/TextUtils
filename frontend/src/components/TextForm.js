@@ -16,6 +16,25 @@ export default function TextForm(props) {
     const [dyslexiaMode, setDyslexiaMode] = useState(false)
     const [markdownMode, setMarkdownMode] = useState(false)
     const [showFmtCfg, setShowFmtCfg] = useState(false)
+
+    // Find & Replace
+    const [showFindReplace, setShowFindReplace]     = useState(false)
+    const [findText, setFindText]                   = useState('')
+    const [replaceText, setReplaceText]             = useState('')
+    const [findCaseSensitive, setFindCaseSensitive] = useState(false)
+    const [findUseRegex, setFindUseRegex]           = useState(false)
+    const [replaceCount, setReplaceCount]           = useState(null)
+
+    // Text Compare
+    const [compareText, setCompareText] = useState('')
+    const [diffResult, setDiffResult]   = useState(null)
+
+    // Generators
+    const [textGenType, setTextGenType]   = useState('words')
+    const [textGenCount, setTextGenCount] = useState(50)
+    const [pwdLen, setPwdLen]             = useState(16)
+    const [pwdOpts, setPwdOpts]           = useState({ upper: true, lower: true, numbers: true, symbols: true })
+    const [generatedPwd, setGeneratedPwd] = useState('')
     const defaultFmtCfg = {
         tabWidth:         2,
         useTabs:          false,
@@ -118,6 +137,102 @@ export default function TextForm(props) {
     const handleBase64Decode = () => callApi(textService.base64Decode, 'Base64 decoded')
     const handleUrlEncode    = () => callApi(textService.urlEncode,    'URL encoded')
     const handleUrlDecode    = () => callApi(textService.urlDecode,    'URL decoded')
+
+    // ── Text Tools ────────────────────────────────────────────────────────────
+    const handleReverseText      = () => callApi(textService.reverseText,          'Text reversed')
+    const handleSortAsc          = () => callApi(textService.sortLinesAsc,         'Lines sorted A → Z')
+    const handleSortDesc         = () => callApi(textService.sortLinesDesc,        'Lines sorted Z → A')
+    const handleRemoveDuplicates = () => callApi(textService.removeDuplicateLines, 'Duplicate lines removed')
+
+    const handleReplaceAll = () => {
+        if (!findText) { props.showAlert('Enter a search term', 'danger'); return }
+        try {
+            let count = 0
+            let result
+            if (findUseRegex) {
+                const flags = findCaseSensitive ? 'g' : 'gi'
+                const re = new RegExp(findText, flags)
+                result = text.replace(re, (m) => { count++; return replaceText })
+            } else {
+                const flags = findCaseSensitive ? 'g' : 'gi'
+                const re = new RegExp(findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags)
+                result = text.replace(re, () => { count++; return replaceText })
+            }
+            setText(result)
+            setReplaceCount(count)
+            props.showAlert(`Replaced ${count} occurrence${count !== 1 ? 's' : ''}`, count ? 'success' : 'info')
+        } catch (err) {
+            props.showAlert('Invalid regex: ' + err.message, 'danger')
+        }
+    }
+
+    // LCS-based line diff
+    const lineDiff = (aLines, bLines) => {
+        const m = aLines.length, n = bLines.length
+        const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0))
+        for (let i = 1; i <= m; i++)
+            for (let j = 1; j <= n; j++)
+                dp[i][j] = aLines[i-1] === bLines[j-1] ? dp[i-1][j-1] + 1 : Math.max(dp[i-1][j], dp[i][j-1])
+        const result = []
+        let i = m, j = n
+        while (i > 0 || j > 0) {
+            if (i > 0 && j > 0 && aLines[i-1] === bLines[j-1]) {
+                result.unshift({ type: 'same', line: aLines[i-1] }); i--; j--
+            } else if (j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) {
+                result.unshift({ type: 'added', line: bLines[j-1] }); j--
+            } else {
+                result.unshift({ type: 'removed', line: aLines[i-1] }); i--
+            }
+        }
+        return result
+    }
+
+    const handleCompare = () => {
+        if (!text || !compareText) { props.showAlert('Both text fields must have content', 'danger'); return }
+        const aLines = text.split('\n'), bLines = compareText.split('\n')
+        if (aLines.length + bLines.length > 2000) { props.showAlert('Text too large to diff (max ~1000 lines each)', 'danger'); return }
+        setDiffResult(lineDiff(aLines, bLines))
+    }
+
+    // Random Text Generator (lorem ipsum style)
+    const LOREM = 'lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris nisi aliquip ex ea commodo consequat duis aute irure reprehenderit voluptate velit esse cillum eu fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt culpa qui officia deserunt mollit anim id est laborum'.split(' ')
+    const randWord = () => LOREM[Math.floor(Math.random() * LOREM.length)]
+    const randSentence = () => {
+        const len = 6 + Math.floor(Math.random() * 10)
+        const words = Array.from({ length: len }, randWord)
+        words[0] = words[0][0].toUpperCase() + words[0].slice(1)
+        return words.join(' ') + '.'
+    }
+    const handleGenerateText = () => {
+        let result
+        if (textGenType === 'words') {
+            result = Array.from({ length: textGenCount }, randWord).join(' ')
+        } else if (textGenType === 'sentences') {
+            result = Array.from({ length: textGenCount }, randSentence).join(' ')
+        } else {
+            result = Array.from({ length: textGenCount }, () => {
+                const sentCount = 4 + Math.floor(Math.random() * 4)
+                return Array.from({ length: sentCount }, randSentence).join(' ')
+            }).join('\n\n')
+        }
+        setText(result)
+        props.showAlert('Random text generated', 'success')
+    }
+
+    // Password Generator
+    const handleGeneratePassword = () => {
+        const pools = []
+        if (pwdOpts.upper)   pools.push('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+        if (pwdOpts.lower)   pools.push('abcdefghijklmnopqrstuvwxyz')
+        if (pwdOpts.numbers) pools.push('0123456789')
+        if (pwdOpts.symbols) pools.push('!@#$%^&*()-_=+[]{}|;:,.<>?')
+        if (!pools.length) { props.showAlert('Select at least one character type', 'danger'); return }
+        const chars = pools.join('')
+        const arr = new Uint32Array(pwdLen)
+        crypto.getRandomValues(arr)
+        setGeneratedPwd(Array.from(arr).map(x => chars[x % chars.length]).join(''))
+        props.showAlert('Password generated', 'success')
+    }
 
     // ── Developer Tools ────────────────────────────────────────────────────────
     const handleJsonFormat  = () => callApi(textService.formatJson, 'JSON formatted')
@@ -364,6 +479,80 @@ export default function TextForm(props) {
                         </div>
                     </div>
 
+                    {/* Text Tools */}
+                    <div className="tu-action-group">
+                        <p className="tu-group-label">Text Tools</p>
+                        <div className="tu-btn-row">
+                            <button disabled={disabled} className="tu-btn tu-btn--tools"
+                                onClick={handleReverseText}>
+                                Reverse Text
+                            </button>
+                            <button disabled={disabled} className="tu-btn tu-btn--tools"
+                                onClick={handleSortAsc}>
+                                Sort A &rarr; Z
+                            </button>
+                            <button disabled={disabled} className="tu-btn tu-btn--tools"
+                                onClick={handleSortDesc}>
+                                Sort Z &rarr; A
+                            </button>
+                            <button disabled={disabled} className="tu-btn tu-btn--tools"
+                                onClick={handleRemoveDuplicates}>
+                                Remove Duplicates
+                            </button>
+                            <button
+                                className={`tu-btn ${showFindReplace ? 'tu-btn--tools-active' : 'tu-btn--tools'}`}
+                                onClick={() => { setShowFindReplace(p => !p); setReplaceCount(null) }}>
+                                {showFindReplace ? 'Hide Find & Replace' : 'Find & Replace'}
+                            </button>
+                        </div>
+
+                        {showFindReplace && (
+                            <div className="tu-find-panel">
+                                <div className="tu-find-panel-header">
+                                    <span className="tu-find-panel-title">Find &amp; Replace</span>
+                                    <span className="tu-find-panel-desc">Search and replace text — supports plain text and regular expressions.</span>
+                                </div>
+                                <div className="tu-find-inputs">
+                                    <input
+                                        className="tu-find-input"
+                                        placeholder="Find…"
+                                        value={findText}
+                                        onChange={e => { setFindText(e.target.value); setReplaceCount(null) }}
+                                    />
+                                    <input
+                                        className="tu-find-input"
+                                        placeholder="Replace with… (leave empty to delete)"
+                                        value={replaceText}
+                                        onChange={e => setReplaceText(e.target.value)}
+                                    />
+                                </div>
+                                <div className="tu-find-footer">
+                                    <div className="tu-find-flags">
+                                        <label className="tu-fmt-check">
+                                            <input type="checkbox" checked={findCaseSensitive}
+                                                onChange={e => setFindCaseSensitive(e.target.checked)} />
+                                            <span>Case Sensitive</span>
+                                        </label>
+                                        <label className="tu-fmt-check">
+                                            <input type="checkbox" checked={findUseRegex}
+                                                onChange={e => setFindUseRegex(e.target.checked)} />
+                                            <span>Regex</span>
+                                        </label>
+                                        {replaceCount !== null && (
+                                            <span className="tu-find-count">
+                                                {replaceCount} replacement{replaceCount !== 1 ? 's' : ''} made
+                                            </span>
+                                        )}
+                                    </div>
+                                    <button disabled={disabled} className="tu-btn tu-btn--tools-active"
+                                        onClick={handleReplaceAll}>
+                                        Replace All
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
                     {/* Encoding */}
                     <div className="tu-action-group">
                         <p className="tu-group-label">Encoding</p>
@@ -520,6 +709,127 @@ export default function TextForm(props) {
                                         ✓ Apply Settings
                                     </button>
                                 </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Text Compare */}
+                    <div className="tu-action-group">
+                        <p className="tu-group-label">Text Compare</p>
+                        <p className="tu-fmt-hint">Original text is taken from the editor above. Paste the text to compare below, then click Compare.</p>
+                        <textarea
+                            className="tu-textarea tu-compare-textarea"
+                            rows="5"
+                            value={compareText}
+                            onChange={e => { setCompareText(e.target.value); setDiffResult(null) }}
+                            placeholder="Paste comparison text here…"
+                        />
+                        <div className="tu-btn-row" style={{ marginTop: '0.5rem' }}>
+                            <button
+                                disabled={!text || !compareText}
+                                className="tu-btn tu-btn--compare"
+                                onClick={handleCompare}>
+                                Compare
+                            </button>
+                            <button
+                                disabled={!compareText && !diffResult}
+                                className="tu-btn tu-btn--dev"
+                                onClick={() => { setCompareText(''); setDiffResult(null) }}>
+                                Clear
+                            </button>
+                        </div>
+                        {diffResult && (
+                            <div className="tu-diff-output">
+                                <div className="tu-diff-legend">
+                                    <span className="tu-diff-badge tu-diff-badge--added">+ Added</span>
+                                    <span className="tu-diff-badge tu-diff-badge--removed">- Removed</span>
+                                    <span className="tu-diff-badge tu-diff-badge--same">= Same</span>
+                                    <span className="tu-diff-stats">
+                                        {diffResult.filter(d => d.type === 'added').length} added &nbsp;·&nbsp;
+                                        {diffResult.filter(d => d.type === 'removed').length} removed &nbsp;·&nbsp;
+                                        {diffResult.filter(d => d.type === 'same').length} unchanged
+                                    </span>
+                                </div>
+                                {diffResult.map((item, idx) => (
+                                    <div key={idx} className={`tu-diff-line tu-diff-line--${item.type}`}>
+                                        <span className="tu-diff-marker">
+                                            {item.type === 'added' ? '+' : item.type === 'removed' ? '-' : ' '}
+                                        </span>
+                                        <span className="tu-diff-text">{item.line || '\u00a0'}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Generators */}
+                    <div className="tu-action-group">
+                        <p className="tu-group-label">Generators</p>
+
+                        <p className="tu-group-sublabel">Random Text</p>
+                        <div className="tu-gen-row">
+                            <label className="tu-fmt-field">
+                                <span>Type</span>
+                                <select value={textGenType} onChange={e => setTextGenType(e.target.value)}>
+                                    <option value="words">Words</option>
+                                    <option value="sentences">Sentences</option>
+                                    <option value="paragraphs">Paragraphs</option>
+                                </select>
+                            </label>
+                            <label className="tu-fmt-field">
+                                <span>Count</span>
+                                <input
+                                    className="tu-gen-number"
+                                    type="number" min={1} max={10000}
+                                    value={textGenCount}
+                                    onChange={e => {
+                                        const val = +e.target.value
+                                        if (val > 10000) {
+                                            props.showAlert('Maximum is 10,000 — value clamped', 'danger')
+                                            setTextGenCount(10000)
+                                        } else {
+                                            setTextGenCount(Math.max(1, val))
+                                        }
+                                    }}
+                                />
+                            </label>
+                            <button className="tu-btn tu-btn--gen" onClick={handleGenerateText}>
+                                Generate
+                            </button>
+                        </div>
+
+                        <p className="tu-group-sublabel" style={{ marginTop: '1rem' }}>Password</p>
+                        <div className="tu-gen-row tu-gen-row--wrap">
+                            <label className="tu-fmt-field">
+                                <span>Length</span>
+                                <input
+                                    className="tu-gen-number"
+                                    type="number" min={4} max={128}
+                                    value={pwdLen}
+                                    onChange={e => setPwdLen(Math.max(4, Math.min(128, +e.target.value)))}
+                                />
+                            </label>
+                            {[['upper','A-Z'],['lower','a-z'],['numbers','0-9'],['symbols','!@#…']].map(([k, lbl]) => (
+                                <label key={k} className="tu-fmt-check">
+                                    <input type="checkbox" checked={pwdOpts[k]}
+                                        onChange={e => setPwdOpts(p => ({ ...p, [k]: e.target.checked }))} />
+                                    <span>{lbl}</span>
+                                </label>
+                            ))}
+                            <button className="tu-btn tu-btn--gen" onClick={handleGeneratePassword}>
+                                Generate
+                            </button>
+                        </div>
+                        {generatedPwd && (
+                            <div className="tu-pwd-output">
+                                <code className="tu-pwd-value">{generatedPwd}</code>
+                                <button className="tu-btn tu-btn--clip"
+                                    onClick={() => { navigator.clipboard.writeText(generatedPwd); props.showAlert('Password copied!', 'success') }}>
+                                    Copy
+                                </button>
+                                <button className="tu-btn tu-btn--gen" onClick={handleGeneratePassword}>
+                                    Regenerate
+                                </button>
                             </div>
                         )}
                     </div>
