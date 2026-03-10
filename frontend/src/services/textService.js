@@ -94,3 +94,12 @@ export const generateBulletPoints   = (text) => post('/api/v1/text/generate-bull
 export const extractKeywords        = (text) => post('/api/v1/text/extract-keywords',        { text });
 export const translateText          = (text, target_language) => post('/api/v1/text/translate',       { text, target_language });
 export const transliterateText     = (text, target_language) => post('/api/v1/text/transliterate',   { text, target_language });
+export const fixPunctuation       = (text) => post('/api/v1/text/fix-punctuation',              { text });
+export const summarizeText       = (text) => post('/api/v1/text/summarize',                    { text });
+export const fixGrammar          = (text) => post('/api/v1/text/fix-grammar',                  { text });
+export const paraphraseText      = (text) => post('/api/v1/text/paraphrase',                   { text });
+export const changeTone          = (text, tone) => post('/api/v1/text/change-tone',            { text, tone });
+export const analyzeSentiment    = (text) => post('/api/v1/text/analyze-sentiment',            { text });
+export const shortenText         = (text) => post('/api/v1/text/shorten-text',                 { text });
+export const lengthenText        = (text) => post('/api/v1/text/lengthen-text',                { text });
+export const changeFormat        = (text, format) => post('/api/v1/text/change-format',        { text, format });

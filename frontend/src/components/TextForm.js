@@ -40,6 +40,8 @@ export default function TextForm(props) {
     const [generatedPwd, setGeneratedPwd] = useState('')
     const [translateLang, setTranslateLang] = useState('Spanish')
     const [translitLang, setTranslitLang] = useState('Hindi')
+    const [toneSetting, setToneSetting] = useState('formal')
+    const [formatSetting, setFormatSetting] = useState('paragraph')
     const defaultFmtCfg = {
         tabWidth:         2,
         useTabs:          false,
@@ -103,6 +105,41 @@ export default function TextForm(props) {
     const handleEmailRewrite   = () => callAi(textService.rewriteEmail,            'Email',             'Email rewriting failed')
     const handleBulletPoints  = () => callAi(textService.generateBulletPoints,  'Bullet Points',     'Bullet point generation failed')
     const handleKeywords      = () => callAi(textService.extractKeywords,       'Keywords',          'Keyword extraction failed')
+    const handleFixPunctuation = () => callAi(textService.fixPunctuation,       'Punctuation Fix',   'Punctuation fixing failed')
+    const handleSummarize     = () => callAi(textService.summarizeText,        'Summary',           'Summarization failed')
+    const handleFixGrammar    = () => callAi(textService.fixGrammar,           'Grammar Fix',       'Grammar fixing failed')
+    const handleParaphrase    = () => callAi(textService.paraphraseText,       'Paraphrase',        'Paraphrasing failed')
+    const handleSentiment     = () => callAi(textService.analyzeSentiment,     'Sentiment',         'Sentiment analysis failed')
+    const handleShortenText   = () => callAi(textService.shortenText,          'Shortened',         'Text shortening failed')
+    const handleLengthenText  = () => callAi(textService.lengthenText,         'Lengthened',        'Text lengthening failed')
+
+    const handleChangeFormat = async () => {
+        if (!text) return
+        setLoading(true)
+        try {
+            const data = await textService.changeFormat(text, formatSetting)
+            setAiResult({ label: `Format (${formatSetting})`, result: data.result })
+            props.showAlert(`Reformatted as ${formatSetting}`, 'success')
+        } catch (err) {
+            props.showAlert(err.message || 'Format changing failed', 'danger')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleChangeTone = async () => {
+        if (!text) return
+        setLoading(true)
+        try {
+            const data = await textService.changeTone(text, toneSetting)
+            setAiResult({ label: `Tone (${toneSetting})`, result: data.result })
+            props.showAlert(`Tone changed to ${toneSetting}`, 'success')
+        } catch (err) {
+            props.showAlert(err.message || 'Tone changing failed', 'danger')
+        } finally {
+            setLoading(false)
+        }
+    }
 
     const handleTranslate = async () => {
         if (!text) return
@@ -132,9 +169,12 @@ export default function TextForm(props) {
         }
     }
 
+    const hasMarkdown = (str) => /[|#*\-]{2,}|^\s*[•\-\d]+[.)]\s|^\|.+\|$/m.test(str)
+
     const handleAiAccept = () => {
         if (aiResult) {
             setText(aiResult.result)
+            if (hasMarkdown(aiResult.result)) setMarkdownMode(true)
             setAiResult(null)
         }
     }
@@ -812,7 +852,10 @@ export default function TextForm(props) {
                             </div>
                         </div>
                         <div className="tu-ai-panel-body">
-                            {aiResult.result}
+                            {hasMarkdown(aiResult.result)
+                                ? <div className="tu-preview-markdown" dangerouslySetInnerHTML={{ __html: marked.parse(aiResult.result) }} />
+                                : <span style={{ whiteSpace: 'pre-wrap' }}>{aiResult.result}</span>
+                            }
                         </div>
                     </div>
                 )}
@@ -931,6 +974,49 @@ export default function TextForm(props) {
                                 onClick={handleBulletPoints} />
                             <Tile icon="⊕" label="Keywords" color="pink" disabled={disabled}
                                 onClick={handleKeywords} />
+                            <Tile icon="." label="Fix Punctuation" color="pink" disabled={disabled}
+                                onClick={handleFixPunctuation} />
+                            <Tile icon="Σ" label="Summarize" color="pink" disabled={disabled}
+                                onClick={handleSummarize} />
+                            <Tile icon="G" label="Fix Grammar" color="pink" disabled={disabled}
+                                onClick={handleFixGrammar} />
+                            <Tile icon="↻" label="Paraphrase" color="pink" disabled={disabled}
+                                onClick={handleParaphrase} />
+                            <Tile icon="♡" label="Sentiment" color="pink" disabled={disabled}
+                                onClick={handleSentiment} />
+                            <Tile icon="⊖" label="Shorten" color="pink" disabled={disabled}
+                                onClick={handleShortenText} />
+                            <Tile icon="⊕" label="Lengthen" color="pink" disabled={disabled}
+                                onClick={handleLengthenText} />
+                            <div className="tu-tile-translate">
+                                <select className="tu-translate-select" value={formatSetting}
+                                    onChange={e => setFormatSetting(e.target.value)}>
+                                    {[
+                                        ['paragraph','Paragraph'],
+                                        ['bullets','Bullet Points'],
+                                        ['paragraph-bullets','Para + Points'],
+                                        ['numbered','Numbered List'],
+                                        ['qna','Q&A'],
+                                        ['table','Table'],
+                                        ['tldr','TL;DR + Detail'],
+                                        ['headings','With Headings'],
+                                    ].map(([v,l]) => (
+                                        <option key={v} value={v}>{l}</option>
+                                    ))}
+                                </select>
+                                <Tile icon="⬡" label="Format" color="pink" disabled={disabled}
+                                    onClick={handleChangeFormat} />
+                            </div>
+                            <div className="tu-tile-translate">
+                                <select className="tu-translate-select" value={toneSetting}
+                                    onChange={e => setToneSetting(e.target.value)}>
+                                    {['formal','casual','friendly'].map(t => (
+                                        <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
+                                    ))}
+                                </select>
+                                <Tile icon="🎭" label="Tone" color="pink" disabled={disabled}
+                                    onClick={handleChangeTone} />
+                            </div>
                             <div className="tu-tile-translate">
                                 <select className="tu-translate-select" value={translateLang}
                                     onChange={e => setTranslateLang(e.target.value)}>

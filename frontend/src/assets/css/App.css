@@ -1137,6 +1137,25 @@ body {
   border-top: 1px solid var(--border);
   margin: 1em 0;
 }
+.tu-preview-markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.75em 0;
+  font-size: 0.9rem;
+}
+.tu-preview-markdown th,
+.tu-preview-markdown td {
+  border: 1px solid var(--border);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+.tu-preview-markdown th {
+  background: var(--surface2);
+  font-weight: 600;
+}
+.tu-preview-markdown tr:nth-child(even) {
+  background: var(--surface1, rgba(255,255,255,0.03));
+}
 
 /* Dyslexia-friendly reading mode */
 .tu-dyslexia {
