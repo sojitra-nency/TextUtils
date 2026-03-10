@@ -50,6 +50,7 @@ export default function TextForm(props) {
         arrowParens:      'always',
         jsxSingleQuote:   false,
         sortImports:      true,
+        language:         'babel',
     }
     const [fmtCfg, setFmtCfg] = useState(defaultFmtCfg)
     const [pendingFmtCfg, setPendingFmtCfg] = useState(defaultFmtCfg)
@@ -328,26 +329,41 @@ export default function TextForm(props) {
         return [...lines.slice(0, start), ...sorted, ...lines.slice(i)].join('\n')
     }
 
+    // Parser → plugin mapping
+    const parserPlugins = {
+        babel:      [parserBabel],
+        typescript: [parserTypescript],
+        html:       [parserHtml],
+        css:        [parserCss],
+    }
+    const parserLabels = {
+        babel:      'JS / JSX',
+        typescript: 'TypeScript',
+        html:       'HTML',
+        css:        'CSS',
+    }
+
     // Core Prettier runner (frontend-only, no backend call)
-    const runFormat = async (parser, plugins, successMsg) => {
+    const runFormat = async (parser, plugins, successMsg, cfgOverride) => {
         if (!text) return
         setLoading(true)
+        const cfg = cfgOverride || fmtCfg
         try {
             let code = text
-            if (fmtCfg.sortImports && ['babel', 'babel-ts', 'typescript'].includes(parser)) {
+            if (cfg.sortImports && ['babel', 'babel-ts', 'typescript'].includes(parser)) {
                 code = sortImportsAlphabetically(code)
             }
             const formatted = prettier.format(code, {
                 parser,
                 plugins,
-                tabWidth:       fmtCfg.tabWidth,
-                useTabs:        fmtCfg.useTabs,
-                semi:           fmtCfg.semi,
-                singleQuote:    fmtCfg.singleQuote,
-                trailingComma:  fmtCfg.trailingComma,
-                bracketSpacing: fmtCfg.bracketSpacing,
-                arrowParens:    fmtCfg.arrowParens,
-                jsxSingleQuote: fmtCfg.jsxSingleQuote,
+                tabWidth:       cfg.tabWidth,
+                useTabs:        cfg.useTabs,
+                semi:           cfg.semi,
+                singleQuote:    cfg.singleQuote,
+                trailingComma:  cfg.trailingComma,
+                bracketSpacing: cfg.bracketSpacing,
+                arrowParens:    cfg.arrowParens,
+                jsxSingleQuote: cfg.jsxSingleQuote,
             })
             setText(formatted)
             props.showAlert(successMsg, 'success')
@@ -362,6 +378,20 @@ export default function TextForm(props) {
     const handleFormatCss  = () => runFormat('css',        [parserCss],        'CSS formatted')
     const handleFormatJs   = () => runFormat('babel',      [parserBabel],      'JS / JSX formatted')
     const handleFormatTs   = () => runFormat('typescript', [parserTypescript], 'TypeScript formatted')
+
+    // Apply settings AND format immediately
+    const handleFmtApply = () => {
+        const cfg = pendingFmtCfg
+        setFmtCfg(cfg)
+        setActivePanel(null)
+        const parser = cfg.language
+        const plugins = parserPlugins[parser]
+        if (text && plugins) {
+            runFormat(parser, plugins, `${parserLabels[parser]} formatted with new settings`, cfg)
+        } else {
+            props.showAlert('Formatter settings applied', 'success')
+        }
+    }
 
     // Formatter pending config helpers (staged, only committed on Apply)
     const setPendingFmt = (patch) => setPendingFmtCfg(c => ({ ...c, ...patch }))
@@ -604,6 +634,16 @@ export default function TextForm(props) {
                 color: 'slate',
                 content: (
                     <div>
+                        <div className="tu-fmt-section-label">Language</div>
+                        <div className="tu-fmt-grid">
+                            <label className="tu-fmt-field">
+                                <select value={pendingFmtCfg.language} onChange={e => setPendingFmt({ language: e.target.value })}>
+                                    {[['babel','JavaScript / JSX'],['typescript','TypeScript'],['html','HTML'],['css','CSS']].map(([v,l]) => (
+                                        <option key={v} value={v}>{l}</option>
+                                    ))}
+                                </select>
+                            </label>
+                        </div>
                         <div className="tu-fmt-section-label">Indentation</div>
                         <div className="tu-fmt-grid">
                             <label className="tu-fmt-field">
@@ -670,7 +710,7 @@ export default function TextForm(props) {
                         </div>
                         <div className="tu-fmt-actions">
                             <button className="tu-btn tu-btn--dev" onClick={() => { setPendingFmtCfg(fmtCfg); setActivePanel(null) }}>Cancel</button>
-                            <button className="tu-btn tu-btn--apply" onClick={() => { setFmtCfg(pendingFmtCfg); setActivePanel(null); props.showAlert('Formatter settings applied', 'success') }}>Apply</button>
+                            <button className="tu-btn tu-btn--apply" disabled={disabled} onClick={handleFmtApply}>Apply & Format</button>
                         </div>
                     </div>
                 )
@@ -744,6 +784,7 @@ export default function TextForm(props) {
                         value={text}
                         onChange={handleChange}
                         placeholder="Start typing or paste your text here…"
+                        style={{ tabSize: fmtCfg.tabWidth, MozTabSize: fmtCfg.tabWidth }}
                     />
                 )}
 
