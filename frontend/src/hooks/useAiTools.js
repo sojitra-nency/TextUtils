@@ -42,6 +42,7 @@ export default function useAiTools(text, setText, setLoading, setMarkdownMode, s
     const handleEli5             = () => callAi(textService.eli5Text,                 'ELI5',              'ELI5 simplification failed')
     const handleProofread        = () => callAi(textService.proofreadText,            'Proofread',         'Proofreading failed')
     const handleGenerateTitle    = () => callAi(textService.generateTitle,            'Titles',            'Title generation failed')
+    const handleRefactorPrompt   = () => callAi(textService.refactorPrompt,           'Prompt Refactored', 'Prompt refactoring failed')
 
     const handleChangeFormat = async () => {
         if (!text) return
@@ -135,7 +136,7 @@ export default function useAiTools(text, setText, setLoading, setMarkdownMode, s
         handleTweetShorten, handleEmailRewrite, handleKeywords,
         handleSummarize, handleFixGrammar, handleParaphrase,
         handleSentiment, handleLengthenText,
-        handleEli5, handleProofread, handleGenerateTitle,
+        handleEli5, handleProofread, handleGenerateTitle, handleRefactorPrompt,
         handleChangeFormat, handleChangeTone, handleTranslate, handleTransliterate,
         handleAiAccept, handleAiDismiss,
     }

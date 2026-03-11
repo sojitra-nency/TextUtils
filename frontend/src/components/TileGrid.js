@@ -203,6 +203,8 @@ export default function TileGrid({
                         onClick={ai.handleProofread} />
                     <Tile icon="H" label="Gen Title" color="pink" disabled={disabled}
                         onClick={ai.handleGenerateTitle} />
+                    <Tile icon="↹" label="Refactor Prompt" color="pink" disabled={disabled}
+                        onClick={ai.handleRefactorPrompt} />
                     <div className="tu-tile-translate">
                         <select className="tu-translate-select" value={ai.formatSetting}
                             onChange={e => ai.setFormatSetting(e.target.value)}>

@@ -142,4 +142,5 @@ export const lengthenText        = (text) => post('/api/v1/text/lengthen-text', 
 export const eli5Text            = (text) => post('/api/v1/text/eli5',                         { text });
 export const proofreadText       = (text) => post('/api/v1/text/proofread',                    { text });
 export const generateTitle       = (text) => post('/api/v1/text/generate-title',               { text });
+export const refactorPrompt     = (text) => post('/api/v1/text/refactor-prompt',              { text });
 export const changeFormat        = (text, format) => post('/api/v1/text/change-format',        { text, format });
