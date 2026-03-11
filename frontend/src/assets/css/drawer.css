@@ -1,0 +1,326 @@
+/* ── Slide-up Drawer ────────────────────────────────── */
+.tu-drawer {
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  animation: tu-drawer-in 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes tu-drawer-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+.tu-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.tu-drawer-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.tu-drawer-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text-3);
+  padding: 0;
+  line-height: 1;
+  transition: color var(--t);
+}
+.tu-drawer-close:hover { color: var(--rose); }
+
+.tu-drawer-body {
+  background: var(--surface);
+}
+
+/* ── Formatter config panel ─────────────────────────── */
+.tu-fmt-cfg {
+  margin-top: 1rem;
+  padding: 0;
+  background: var(--surface2);
+  border: 1.5px solid var(--violet);
+  border-radius: var(--r-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tu-fmt-cfg-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.85rem 1.1rem 0.7rem;
+  background: rgba(99, 102, 241, 0.07);
+  border-bottom: 1px solid var(--border);
+}
+.tu-fmt-cfg-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--violet);
+  letter-spacing: 0.01em;
+}
+.tu-fmt-cfg-desc {
+  font-size: 0.7rem;
+  color: var(--fg2);
+  opacity: 0.85;
+}
+
+.tu-fmt-section-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--fg2);
+  padding: 0.6rem 1.1rem 0.2rem;
+}
+
+.tu-fmt-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.2rem;
+  align-items: center;
+  padding: 0 1.1rem 0.6rem;
+}
+.tu-fmt-field {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--fg2);
+  white-space: nowrap;
+}
+.tu-fmt-field span { font-weight: 500; color: var(--fg); }
+.tu-fmt-field select {
+  font-size: 0.78rem;
+  padding: 0.22rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--fg);
+  cursor: pointer;
+}
+.tu-fmt-field select:focus { outline: none; border-color: var(--violet); }
+
+.tu-fmt-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.5rem;
+  padding: 0 1.1rem 0.7rem;
+}
+.tu-fmt-check {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  color: var(--fg);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tu-fmt-check input[type="checkbox"] { accent-color: var(--violet); cursor: pointer; }
+
+.tu-fmt-presets {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.1rem;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+  background: rgba(0,0,0,0.02);
+}
+.tu-fmt-preset-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--fg2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-right: 0.2rem;
+}
+
+.tu-fmt-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.7rem 1.1rem;
+  border-top: 1px solid var(--border);
+  background: rgba(0,0,0,0.02);
+}
+
+/* ── Find & Replace panel ───────────────────────────── */
+.tu-find-panel {
+  margin-top: 1rem;
+  border: 1.5px solid #14B8A6;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--surface2);
+}
+.tu-find-panel-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.75rem 1.1rem 0.6rem;
+  background: rgba(20, 184, 166, 0.07);
+  border-bottom: 1px solid var(--border);
+}
+.tu-find-panel-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0f766e;
+}
+.tu-find-panel-desc {
+  font-size: 0.7rem;
+  color: var(--fg2);
+  opacity: 0.85;
+}
+.tu-find-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 1.1rem;
+}
+.tu-find-input {
+  width: 100%;
+  padding: 0.45rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--fg);
+  font-size: 0.85rem;
+  box-sizing: border-box;
+}
+.tu-find-input:focus { outline: none; border-color: #14B8A6; }
+.tu-find-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.6rem 1.1rem 0.75rem;
+  border-top: 1px solid var(--border);
+}
+.tu-find-flags {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.tu-find-count {
+  font-size: 0.72rem;
+  color: #0f766e;
+  font-weight: 600;
+  background: rgba(20, 184, 166, 0.12);
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+}
+
+/* ── Text Compare ───────────────────────────────────── */
+.tu-compare-textarea {
+  margin-top: 0.5rem;
+  width: 100%;
+}
+.tu-diff-output {
+  margin-top: 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  font-family: 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.78rem;
+  max-height: 400px;
+  overflow-y: auto;
+}
+.tu-diff-legend {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.9rem;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.tu-diff-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+}
+.tu-diff-badge--added   { background: rgba(34,197,94,0.15);  color: #15803d; }
+.tu-diff-badge--removed { background: rgba(239,68,68,0.15);  color: #b91c1c; }
+.tu-diff-badge--same    { background: rgba(100,116,139,0.12); color: #475569; }
+.tu-diff-stats {
+  font-size: 0.68rem;
+  color: var(--fg2);
+  margin-left: auto;
+}
+.tu-diff-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.tu-diff-line--same    { background: transparent; }
+.tu-diff-line--added   { background: rgba(34, 197, 94, 0.12); }
+.tu-diff-line--removed { background: rgba(239, 68,  68, 0.12); }
+.tu-diff-marker {
+  display: inline-block;
+  width: 1.6rem;
+  min-width: 1.6rem;
+  text-align: center;
+  font-weight: 700;
+  padding: 0.15rem 0;
+  color: inherit;
+}
+.tu-diff-line--added   .tu-diff-marker { color: #15803d; }
+.tu-diff-line--removed .tu-diff-marker { color: #b91c1c; }
+.tu-diff-line--same    .tu-diff-marker { color: var(--fg2); }
+.tu-diff-text {
+  flex: 1;
+  padding: 0.15rem 0.5rem 0.15rem 0;
+  color: var(--fg);
+}
+
+/* ── Generators ─────────────────────────────────────── */
+.tu-gen-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.tu-gen-row--wrap { flex-wrap: wrap; }
+.tu-gen-number {
+  width: 5rem;
+  padding: 0.22rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--fg);
+  font-size: 0.78rem;
+  text-align: center;
+}
+.tu-gen-number:focus { outline: none; border-color: #F59E0B; }
+.tu-pwd-output {
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.85rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  flex-wrap: wrap;
+}
+.tu-pwd-value {
+  flex: 1;
+  font-family: 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.85rem;
+  color: var(--fg);
+  word-break: break-all;
+  letter-spacing: 0.03em;
+}

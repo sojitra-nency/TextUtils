@@ -1,0 +1,355 @@
+/* ── Workspace ───────────────────────────────────────── */
+.tu-workspace {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 5rem;
+  position: relative;
+}
+
+/* Ambient gradient blobs */
+.tu-blob {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(90px);
+  z-index: -1;
+  pointer-events: none;
+  animation: blob-drift 10s ease-in-out infinite alternate;
+}
+.tu-blob-1 {
+  width: 480px; height: 480px;
+  background: rgba(124, 58, 237, 0.1);
+  top: -80px; right: -120px;
+}
+.tu-blob-2 {
+  width: 360px; height: 360px;
+  background: rgba(236, 72, 153, 0.08);
+  bottom: 10%; left: -100px;
+  animation-delay: -5s;
+  animation-duration: 13s;
+}
+.tu-blob-3 {
+  width: 260px; height: 260px;
+  background: rgba(6, 182, 212, 0.07);
+  top: 40%; right: 5%;
+  animation-delay: -2s;
+  animation-duration: 15s;
+}
+
+@keyframes blob-drift {
+  0%   { transform: translate(0, 0)      scale(1);    }
+  50%  { transform: translate(25px, -35px) scale(1.06); }
+  100% { transform: translate(-15px, 18px) scale(0.94); }
+}
+
+/* ── Hero ────────────────────────────────────────────── */
+.tu-hero {
+  text-align: center;
+  padding: 2.5rem 0 2rem;
+}
+
+.tu-hero-title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  color: var(--text);
+  margin-bottom: 0.65rem;
+}
+
+.tu-gradient-text {
+  background: linear-gradient(135deg, var(--violet) 0%, var(--pink) 55%, var(--amber) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.tu-hero-sub {
+  color: var(--text-3);
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+}
+
+/* ── Editor Card ─────────────────────────────────────── */
+.tu-editor-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.06),
+    0 4px 20px rgba(124, 58, 237, 0.06);
+  overflow: hidden;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.tu-editor-card:focus-within {
+  border-color: var(--border-strong);
+  box-shadow:
+    0 0 0 3px var(--violet-glow),
+    0 4px 28px rgba(124, 58, 237, 0.12);
+}
+
+.tu-editor-topbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1.2rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  flex-wrap: wrap;
+}
+
+/* ── Topbar stats chips ───────────────────────────────── */
+.tu-topbar-stats {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-left: auto;
+}
+
+.tu-topbar-stat {
+  font-size: 0.6rem;
+  background: rgba(124, 58, 237, 0.07);
+  border: 1px solid rgba(124, 58, 237, 0.12);
+  border-radius: 999px;
+  padding: 0.1rem 0.45rem;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.tu-topbar-stat b {
+  color: var(--violet);
+  font-weight: 700;
+}
+
+.tu-dots {
+  display: flex;
+  gap: 6px;
+}
+.tu-dots span {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+}
+.tu-dots span:nth-child(1) { background: #FF5F57; }
+.tu-dots span:nth-child(2) { background: #FFBD2E; }
+.tu-dots span:nth-child(3) { background: #28C840; }
+
+.tu-editor-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tu-textarea {
+  width: 100%;
+  min-height: 200px;
+  padding: 1.2rem 1.25rem;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: vertical;
+  color: var(--text);
+  font-size: 0.92rem;
+  line-height: 1.75;
+  font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Cascadia Code', monospace;
+  caret-color: var(--violet);
+}
+
+.tu-textarea::placeholder {
+  color: var(--text-3);
+  font-style: italic;
+}
+
+/* ── AI Result Panel ─────────────────────────────────── */
+.tu-ai-panel {
+  border-top: 1px solid rgba(236, 72, 153, 0.2);
+  background: rgba(236, 72, 153, 0.03);
+}
+
+.tu-ai-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1.25rem;
+  border-bottom: 1px solid rgba(236, 72, 153, 0.12);
+}
+
+.tu-ai-panel-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #EC4899;
+}
+
+.tu-ai-panel-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.tu-ai-panel-body {
+  padding: 1rem 1.25rem;
+  font-size: 0.92rem;
+  line-height: 1.75;
+  font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Cascadia Code', monospace;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* ── Translate combo ────────────────────────────────── */
+.tu-tile-translate {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+}
+
+.tu-translate-select {
+  appearance: none;
+  background: var(--surface);
+  border: 1.5px solid rgba(236, 72, 153, 0.25);
+  border-right: none;
+  border-radius: var(--r-md) 0 0 var(--r-md);
+  padding: 0 0.6rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #DB2777;
+  cursor: pointer;
+  outline: none;
+  transition: all var(--t);
+}
+
+.tu-translate-select:hover,
+.tu-translate-select:focus {
+  border-color: #EC4899;
+  background: rgba(236, 72, 153, 0.06);
+}
+
+.tu-tile-translate .tu-tile {
+  border-radius: 0 var(--r-md) var(--r-md) 0;
+}
+
+/* ── Loading indicator ───────────────────────────────── */
+.tu-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.78rem;
+  color: var(--text-3);
+}
+
+.tu-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--violet);
+  border-radius: 50%;
+  animation: spin 0.65s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Dyslexia-friendly reading mode */
+.tu-dyslexia {
+  font-family: 'Verdana', 'Arial', sans-serif !important;
+  font-size: 1.05rem !important;
+  letter-spacing: 0.06em !important;
+  word-spacing: 0.2em !important;
+  line-height: 2 !important;
+}
+
+/* ── Preview body ────────────────────────────────────── */
+.tu-preview-body {
+  padding: 1.2rem 1.25rem;
+  font-size: 0.9rem;
+  line-height: 1.8;
+  color: var(--text-2);
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 80px;
+  font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+}
+
+.tu-preview-empty {
+  color: var(--text-3);
+  font-style: italic;
+  font-family: 'Inter', sans-serif;
+}
+
+/* ── Markdown rendered preview ───────────────────────── */
+.tu-preview-markdown {
+  line-height: 1.75;
+}
+.tu-preview-markdown h1,
+.tu-preview-markdown h2,
+.tu-preview-markdown h3 {
+  font-weight: 700;
+  margin: 0.75em 0 0.4em;
+  color: var(--fg);
+}
+.tu-preview-markdown h1 { font-size: 1.5rem; }
+.tu-preview-markdown h2 { font-size: 1.25rem; }
+.tu-preview-markdown h3 { font-size: 1.05rem; }
+.tu-preview-markdown p  { margin: 0.5em 0; }
+.tu-preview-markdown ul,
+.tu-preview-markdown ol {
+  padding-left: 1.4em;
+  margin: 0.4em 0;
+}
+.tu-preview-markdown code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85em;
+  background: var(--surface2);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+}
+.tu-preview-markdown pre {
+  background: var(--surface2);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 0.85rem;
+}
+.tu-preview-markdown blockquote {
+  border-left: 3px solid var(--violet);
+  padding-left: 1rem;
+  color: var(--fg2);
+  margin: 0.5em 0;
+}
+.tu-preview-markdown a { color: var(--violet); }
+.tu-preview-markdown hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1em 0;
+}
+.tu-preview-markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.75em 0;
+  font-size: 0.9rem;
+}
+.tu-preview-markdown th,
+.tu-preview-markdown td {
+  border: 1px solid var(--border);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+.tu-preview-markdown th {
+  background: var(--surface2);
+  font-weight: 600;
+}
+.tu-preview-markdown tr:nth-child(even) {
+  background: var(--surface1, rgba(255,255,255,0.03));
+}

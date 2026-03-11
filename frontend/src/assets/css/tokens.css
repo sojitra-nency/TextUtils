@@ -1,0 +1,50 @@
+/* ═══════════════════════════════════════════════════════
+   TextUtils — Design Tokens
+   ═══════════════════════════════════════════════════════ */
+
+:root {
+  --violet:        #7C3AED;
+  --violet-light:  #8B5CF6;
+  --violet-dark:   #6D28D9;
+  --violet-glow:   rgba(124, 58, 237, 0.28);
+  --pink:          #EC4899;
+  --cyan:          #06B6D4;
+  --emerald:       #10B981;
+  --amber:         #F59E0B;
+  --rose:          #F43F5E;
+
+  --bg:            #F5F3FF;
+  --bg2:           #EDE9FF;
+  --surface:       rgba(255, 255, 255, 0.88);
+  --surface-2:     rgba(255, 255, 255, 0.55);
+  --border:        rgba(124, 58, 237, 0.12);
+  --border-strong: rgba(124, 58, 237, 0.28);
+
+  --text:          #1E1B4B;
+  --text-2:        #4B5563;
+  --text-3:        #9CA3AF;
+
+  --nav-bg:        rgba(245, 243, 255, 0.82);
+
+  --r-sm:   8px;
+  --r-md:   14px;
+  --r-lg:   20px;
+  --r-xl:   26px;
+  --r-pill: 999px;
+
+  --t:        0.18s ease;
+  --t-spring: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+body.dark {
+  --bg:            #09090F;
+  --bg2:           #0F0F1C;
+  --surface:       rgba(255, 255, 255, 0.045);
+  --surface-2:     rgba(255, 255, 255, 0.025);
+  --border:        rgba(124, 58, 237, 0.22);
+  --border-strong: rgba(124, 58, 237, 0.45);
+  --text:          #F1F5F9;
+  --text-2:        #CBD5E1;
+  --text-3:        #64748B;
+  --nav-bg:        rgba(9, 9, 15, 0.85);
+}

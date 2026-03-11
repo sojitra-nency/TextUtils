@@ -13,19 +13,31 @@ const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
  * @param {object} body      - JSON payload
  * @returns {Promise<object>} Parsed JSON response
  */
-async function post(endpoint, body) {
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-    });
+async function post(endpoint, body, timeoutMs = 30000) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        const response = await fetch(`${BASE_URL}${endpoint}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+            signal: controller.signal,
+        });
 
-    if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.detail || `Request failed: ${response.status}`);
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            throw new Error(error.detail || `Request failed: ${response.status}`);
+        }
+
+        return response.json();
+    } catch (err) {
+        if (err.name === 'AbortError') {
+            throw new Error('Request timed out. Please try again.');
+        }
+        throw err;
+    } finally {
+        clearTimeout(timer);
     }
-
-    return response.json();
 }
 
 // ── Text transformation endpoints ─────────────────────────────────────────────
@@ -60,8 +72,6 @@ export const removeAllSpaces = (text) => post('/api/v1/text/remove-all-spaces', 
 /** Remove line breaks, replacing them with spaces */
 export const removeLineBreaks = (text) => post('/api/v1/text/remove-line-breaks', { text });
 
-/** Collapse all whitespace to single spaces */
-export const minify = (text) => post('/api/v1/text/minify', { text });
 
 // ── Encoding ──────────────────────────────────────────────────────────────────
 
@@ -90,16 +100,13 @@ export const generateMetaDescriptions = (text) => post('/api/v1/text/generate-me
 export const generateBlogOutline      = (text) => post('/api/v1/text/generate-blog-outline',      { text });
 export const shortenForTweet          = (text) => post('/api/v1/text/shorten-for-tweet',          { text });
 export const rewriteEmail            = (text) => post('/api/v1/text/rewrite-email',             { text });
-export const generateBulletPoints   = (text) => post('/api/v1/text/generate-bullet-points',   { text });
 export const extractKeywords        = (text) => post('/api/v1/text/extract-keywords',        { text });
 export const translateText          = (text, target_language) => post('/api/v1/text/translate',       { text, target_language });
 export const transliterateText     = (text, target_language) => post('/api/v1/text/transliterate',   { text, target_language });
-export const fixPunctuation       = (text) => post('/api/v1/text/fix-punctuation',              { text });
 export const summarizeText       = (text) => post('/api/v1/text/summarize',                    { text });
 export const fixGrammar          = (text) => post('/api/v1/text/fix-grammar',                  { text });
 export const paraphraseText      = (text) => post('/api/v1/text/paraphrase',                   { text });
 export const changeTone          = (text, tone) => post('/api/v1/text/change-tone',            { text, tone });
 export const analyzeSentiment    = (text) => post('/api/v1/text/analyze-sentiment',            { text });
-export const shortenText         = (text) => post('/api/v1/text/shorten-text',                 { text });
 export const lengthenText        = (text) => post('/api/v1/text/lengthen-text',                { text });
 export const changeFormat        = (text, format) => post('/api/v1/text/change-format',        { text, format });
