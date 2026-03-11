@@ -10,11 +10,17 @@ export default function TileGrid({
     // AI handlers
     ai,
     // Text tool handlers
-    handleReverseText, handleSortAsc, handleSortDesc, handleRemoveDuplicates,
+    handleReverseText, handleReverseLines, handleNumberLines, handleRot13,
+    handleSortAsc, handleSortDesc, handleRemoveDuplicates,
     // Encoding handlers
     handleBase64Encode, handleBase64Decode, handleUrlEncode, handleUrlDecode,
+    handleHexEncode, handleHexDecode, handleMorseEncode, handleMorseDecode,
+    handleMd5, handleSha256,
+    // Escape handlers
+    handleJsonEscape, handleJsonUnescape, handleHtmlEscape, handleHtmlUnescape,
     // Developer handlers
-    handleJsonFormat, handleJsonToYaml,
+    handleJsonFormat, handleJsonToYaml, handleCsvToJson, handleJsonToCsv,
+    handleJwtDecode,
     handleFormatHtml, handleFormatCss, handleFormatJs, handleFormatTs,
     // Action handlers
     handleCopy, handlePaste, handleClearPaste, handleClear,
@@ -46,6 +52,10 @@ export default function TileGrid({
                         onClick={() => callApi(textService.toUpperCamelCase, 'Converted to PascalCase')} />
                     <Tile icon="cc" label="camelCase" color="violet" disabled={disabled}
                         onClick={() => callApi(textService.toLowerCamelCase, 'Converted to camelCase')} />
+                    <Tile icon="s_c" label="snake_case" color="violet" disabled={disabled}
+                        onClick={() => callApi(textService.toSnakeCase, 'Converted to snake_case')} />
+                    <Tile icon="k-c" label="kebab-case" color="violet" disabled={disabled}
+                        onClick={() => callApi(textService.toKebabCase, 'Converted to kebab-case')} />
                 </div>
             </div>
 
@@ -59,6 +69,12 @@ export default function TileGrid({
                         onClick={() => callApi(textService.removeLineBreaks, 'Line breaks removed')} />
                     <Tile icon="✕⎵" label="Strip All" color="slate" disabled={disabled}
                         onClick={() => callApi(textService.removeAllSpaces, 'All spaces removed')} />
+                    <Tile icon="</>" label="Strip HTML" color="slate" disabled={disabled}
+                        onClick={() => callApi(textService.stripHtml, 'HTML tags removed')} />
+                    <Tile icon="àa" label="No Accents" color="slate" disabled={disabled}
+                        onClick={() => callApi(textService.removeAccents, 'Accents removed')} />
+                    <Tile icon='""' label="Toggle Quotes" color="slate" disabled={disabled}
+                        onClick={() => callApi(textService.toggleSmartQuotes, 'Quotes toggled')} />
                 </div>
             </div>
 
@@ -74,6 +90,12 @@ export default function TileGrid({
                         onClick={handleSortDesc} />
                     <Tile icon="⊟" label="Deduplicate" color="teal" disabled={disabled}
                         onClick={handleRemoveDuplicates} />
+                    <Tile icon="⇵" label="Rev Lines" color="teal" disabled={disabled}
+                        onClick={handleReverseLines} />
+                    <Tile icon="1." label="Number" color="teal" disabled={disabled}
+                        onClick={handleNumberLines} />
+                    <Tile icon="R13" label="ROT13" color="teal" disabled={disabled}
+                        onClick={handleRot13} />
                     <Tile icon="⌕↺" label="Find & Replace" color="teal"
                         active={activePanel === 'find'}
                         onClick={() => togglePanel('find')} />
@@ -92,6 +114,26 @@ export default function TileGrid({
                         onClick={handleUrlEncode} />
                     <Tile icon="%-" label="URL Decode" color="indigo" disabled={disabled}
                         onClick={handleUrlDecode} />
+                    <Tile icon="0x" label="Hex Enc" color="indigo" disabled={disabled}
+                        onClick={handleHexEncode} />
+                    <Tile icon="x0" label="Hex Dec" color="indigo" disabled={disabled}
+                        onClick={handleHexDecode} />
+                    <Tile icon="·—" label="Morse Enc" color="indigo" disabled={disabled}
+                        onClick={handleMorseEncode} />
+                    <Tile icon="—·" label="Morse Dec" color="indigo" disabled={disabled}
+                        onClick={handleMorseDecode} />
+                    <Tile icon="#5" label="MD5" color="indigo" disabled={disabled}
+                        onClick={handleMd5} />
+                    <Tile icon="#2" label="SHA-256" color="indigo" disabled={disabled}
+                        onClick={handleSha256} />
+                    <Tile icon="J↑" label="JSON Esc" color="indigo" disabled={disabled}
+                        onClick={handleJsonEscape} />
+                    <Tile icon="J↓" label="JSON Unesc" color="indigo" disabled={disabled}
+                        onClick={handleJsonUnescape} />
+                    <Tile icon="H↑" label="HTML Esc" color="indigo" disabled={disabled}
+                        onClick={handleHtmlEscape} />
+                    <Tile icon="H↓" label="HTML Unesc" color="indigo" disabled={disabled}
+                        onClick={handleHtmlUnescape} />
                 </div>
             </div>
 
@@ -114,6 +156,15 @@ export default function TileGrid({
                     <Tile icon="⚙" label="Fmt Settings" color="gray"
                         active={activePanel === 'fmt'}
                         onClick={() => togglePanel('fmt')} />
+                    <Tile icon="C→J" label="CSV→JSON" color="gray" disabled={disabled}
+                        onClick={handleCsvToJson} />
+                    <Tile icon="J→C" label="JSON→CSV" color="gray" disabled={disabled}
+                        onClick={handleJsonToCsv} />
+                    <Tile icon="JWT" label="JWT Decode" color="gray" disabled={disabled}
+                        onClick={handleJwtDecode} />
+                    <Tile icon=".*" label="Regex Test" color="gray"
+                        active={activePanel === 'regex'}
+                        onClick={() => togglePanel('regex')} />
                 </div>
             </div>
 

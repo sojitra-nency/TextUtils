@@ -3,28 +3,40 @@ import { marked } from 'marked'
 
 export default function EditorPanel({
     text, setText, markdownMode, dyslexiaMode, loading, fmtCfg,
-    aiResult, hasMarkdown, onAiAccept, onAiDismiss, showAlert,
+    aiResult, hasMarkdown, onAiAccept, onAiDismiss,
+    previewMode, setPreviewMode, showAlert,
 }) {
+    const handleDismiss = () => {
+        onAiDismiss()
+        setPreviewMode(null)
+    }
+
+    const handleAccept = () => {
+        onAiAccept()
+        setPreviewMode(null)
+    }
+
+    const handleChange = (e) => {
+        setText(e.target.value)
+        if (previewMode === 'result') { onAiDismiss(); setPreviewMode(null) }
+    }
+
+    // Determine which panel to show based on most recent action
+    const showResult   = previewMode === 'result' && aiResult
+    const showDyslexia = previewMode === 'dyslexia' && dyslexiaMode && text
+    const showMarkdown = previewMode === 'markdown' && markdownMode && text
+
     return (
         <>
-            {markdownMode ? (
-                <div className="tu-preview-body" style={{ minHeight: 200 }}>
-                    {text
-                        ? <div className="tu-preview-markdown" dangerouslySetInnerHTML={{ __html: marked.parse(text) }} />
-                        : <span className="tu-preview-empty">Markdown preview will appear here…</span>
-                    }
-                </div>
-            ) : (
-                <textarea
-                    className={`tu-textarea${dyslexiaMode ? ' tu-dyslexia' : ''}`}
-                    id="text"
-                    rows="10"
-                    value={text}
-                    onChange={e => setText(e.target.value)}
-                    placeholder="Start typing or paste your text here…"
-                    style={{ tabSize: fmtCfg.tabWidth, MozTabSize: fmtCfg.tabWidth }}
-                />
-            )}
+            <textarea
+                className="tu-textarea"
+                id="text"
+                rows="10"
+                value={text}
+                onChange={handleChange}
+                placeholder="Start typing or paste your text here…"
+                style={{ tabSize: fmtCfg.tabWidth, MozTabSize: fmtCfg.tabWidth }}
+            />
 
             {loading && (
                 <div className="tu-loading">
@@ -33,18 +45,18 @@ export default function EditorPanel({
                 </div>
             )}
 
-            {aiResult && (
+            {showResult ? (
                 <div className="tu-ai-panel">
                     <div className="tu-ai-panel-header">
                         <span className="tu-ai-panel-label">{aiResult.label}</span>
                         <div className="tu-ai-panel-actions">
-                            <button className="tu-btn tu-btn--ai-accept" onClick={onAiAccept}>
+                            <button className="tu-btn tu-btn--ai-accept" onClick={handleAccept}>
                                 ✓ Accept
                             </button>
-                            <button className="tu-btn tu-btn--ai-copy" onClick={() => { navigator.clipboard.writeText(aiResult.result); showAlert('AI result copied', 'success') }}>
+                            <button className="tu-btn tu-btn--ai-copy" onClick={() => { navigator.clipboard.writeText(aiResult.result); showAlert('Result copied', 'success') }}>
                                 ⧉ Copy
                             </button>
-                            <button className="tu-btn tu-btn--ai-dismiss" onClick={onAiDismiss}>
+                            <button className="tu-btn tu-btn--ai-dismiss" onClick={handleDismiss}>
                                 ✕
                             </button>
                         </div>
@@ -56,7 +68,25 @@ export default function EditorPanel({
                         }
                     </div>
                 </div>
-            )}
+            ) : showDyslexia ? (
+                <div className="tu-ai-panel">
+                    <div className="tu-ai-panel-header">
+                        <span className="tu-ai-panel-label">Dyslexia-Friendly Preview</span>
+                    </div>
+                    <div className="tu-ai-panel-body">
+                        <span className="tu-dyslexia" style={{ whiteSpace: 'pre-wrap' }}>{text}</span>
+                    </div>
+                </div>
+            ) : showMarkdown ? (
+                <div className="tu-ai-panel">
+                    <div className="tu-ai-panel-header">
+                        <span className="tu-ai-panel-label">Markdown Preview</span>
+                    </div>
+                    <div className="tu-ai-panel-body">
+                        <div className="tu-preview-markdown" dangerouslySetInnerHTML={{ __html: marked.parse(text) }} />
+                    </div>
+                </div>
+            ) : null}
         </>
     )
 }

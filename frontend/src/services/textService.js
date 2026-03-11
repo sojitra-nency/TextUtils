@@ -63,6 +63,12 @@ export const toUpperCamelCase = (text) => post('/api/v1/text/upper-camel-case', 
 /** Convert text to lowerCamelCase */
 export const toLowerCamelCase = (text) => post('/api/v1/text/lower-camel-case', { text });
 
+/** Convert text to snake_case */
+export const toSnakeCase = (text) => post('/api/v1/text/snake-case', { text });
+
+/** Convert text to kebab-case */
+export const toKebabCase = (text) => post('/api/v1/text/kebab-case', { text });
+
 /** Remove extra whitespace from text */
 export const removeExtraSpaces = (text) => post('/api/v1/text/remove-extra-spaces', { text });
 
@@ -72,6 +78,11 @@ export const removeAllSpaces = (text) => post('/api/v1/text/remove-all-spaces', 
 /** Remove line breaks, replacing them with spaces */
 export const removeLineBreaks = (text) => post('/api/v1/text/remove-line-breaks', { text });
 
+// ── Text Cleaning ────────────────────────────────────────────────────────────
+
+export const stripHtml       = (text) => post('/api/v1/text/strip-html',        { text });
+export const removeAccents   = (text) => post('/api/v1/text/remove-accents',    { text });
+export const toggleSmartQuotes = (text) => post('/api/v1/text/toggle-smart-quotes', { text });
 
 // ── Encoding ──────────────────────────────────────────────────────────────────
 
@@ -79,6 +90,10 @@ export const base64Encode = (text) => post('/api/v1/text/base64-encode', { text 
 export const base64Decode = (text) => post('/api/v1/text/base64-decode', { text });
 export const urlEncode    = (text) => post('/api/v1/text/url-encode',    { text });
 export const urlDecode    = (text) => post('/api/v1/text/url-decode',    { text });
+export const hexEncode    = (text) => post('/api/v1/text/hex-encode',    { text });
+export const hexDecode    = (text) => post('/api/v1/text/hex-decode',    { text });
+export const morseEncode  = (text) => post('/api/v1/text/morse-encode',  { text });
+export const morseDecode  = (text) => post('/api/v1/text/morse-decode',  { text });
 
 // ── Text Tools ────────────────────────────────────────────────────────────────
 
@@ -86,11 +101,26 @@ export const reverseText          = (text) => post('/api/v1/text/reverse',      
 export const sortLinesAsc         = (text) => post('/api/v1/text/sort-lines-asc',          { text });
 export const sortLinesDesc        = (text) => post('/api/v1/text/sort-lines-desc',         { text });
 export const removeDuplicateLines = (text) => post('/api/v1/text/remove-duplicate-lines',  { text });
+export const reverseLines        = (text) => post('/api/v1/text/reverse-lines',           { text });
+export const numberLines         = (text) => post('/api/v1/text/number-lines',            { text });
+export const rot13               = (text) => post('/api/v1/text/rot13',                   { text });
 
 // ── Developer Tools ───────────────────────────────────────────────────────────
 
 export const formatJson  = (text) => post('/api/v1/text/format-json',  { text });
 export const jsonToYaml  = (text) => post('/api/v1/text/json-to-yaml', { text });
+
+// ── Escape / Unescape ────────────────────────────────────────────────────────
+
+export const jsonEscape   = (text) => post('/api/v1/text/json-escape',   { text });
+export const jsonUnescape = (text) => post('/api/v1/text/json-unescape', { text });
+export const htmlEscape   = (text) => post('/api/v1/text/html-escape',   { text });
+export const htmlUnescape = (text) => post('/api/v1/text/html-unescape', { text });
+
+// ── CSV / JSON Conversion ────────────────────────────────────────────────────
+
+export const csvToJson = (text) => post('/api/v1/text/csv-to-json', { text });
+export const jsonToCsv = (text) => post('/api/v1/text/json-to-csv', { text });
 
 // ── AI Tools ─────────────────────────────────────────────────────────────────
 
