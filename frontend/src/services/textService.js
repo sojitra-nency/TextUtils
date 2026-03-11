@@ -139,4 +139,7 @@ export const paraphraseText      = (text) => post('/api/v1/text/paraphrase',    
 export const changeTone          = (text, tone) => post('/api/v1/text/change-tone',            { text, tone });
 export const analyzeSentiment    = (text) => post('/api/v1/text/analyze-sentiment',            { text });
 export const lengthenText        = (text) => post('/api/v1/text/lengthen-text',                { text });
+export const eli5Text            = (text) => post('/api/v1/text/eli5',                         { text });
+export const proofreadText       = (text) => post('/api/v1/text/proofread',                    { text });
+export const generateTitle       = (text) => post('/api/v1/text/generate-title',               { text });
 export const changeFormat        = (text, format) => post('/api/v1/text/change-format',        { text, format });

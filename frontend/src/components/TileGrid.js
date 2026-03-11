@@ -28,6 +28,7 @@ export default function TileGrid({
     handleDyslexiaMode, handleMarkdownMode,
     handleDownloadTxt, handleDownloadPdf, handleDownloadDocx, handleDownloadJson,
     handleShare,
+    handleWordFrequency,
     // State
     dyslexiaMode, markdownMode,
 }) {
@@ -196,6 +197,12 @@ export default function TileGrid({
                         onClick={ai.handleSentiment} />
                     <Tile icon="⊕" label="Lengthen" color="pink" disabled={disabled}
                         onClick={ai.handleLengthenText} />
+                    <Tile icon="5" label="ELI5" color="pink" disabled={disabled}
+                        onClick={ai.handleEli5} />
+                    <Tile icon="✓" label="Proofread" color="pink" disabled={disabled}
+                        onClick={ai.handleProofread} />
+                    <Tile icon="H" label="Gen Title" color="pink" disabled={disabled}
+                        onClick={ai.handleGenerateTitle} />
                     <div className="tu-tile-translate">
                         <select className="tu-translate-select" value={ai.formatSetting}
                             onChange={e => ai.setFormatSetting(e.target.value)}>
@@ -263,6 +270,21 @@ export default function TileGrid({
                     <Tile icon="⚿" label="Password" color="amber"
                         active={activePanel === 'password'}
                         onClick={() => togglePanel('password')} />
+                </div>
+            </div>
+
+            {/* Utilities */}
+            <div className="tu-tile-section">
+                <span className="tu-tile-sec-label" style={{ color: '#F59E0B' }}>◇ Utilities</span>
+                <div className="tu-tile-row">
+                    <Tile icon="📋" label="Templates" color="amber"
+                        active={activePanel === 'templates'}
+                        onClick={() => togglePanel('templates')} />
+                    <Tile icon="↩" label="History" color="gray"
+                        active={activePanel === 'history'}
+                        onClick={() => togglePanel('history')} />
+                    <Tile icon="W#" label="Word Freq" color="purple" disabled={disabled}
+                        onClick={handleWordFrequency} />
                 </div>
             </div>
 

@@ -10,6 +10,9 @@ import useAiTools from '../hooks/useAiTools'
 import useSpeech from '../hooks/useSpeech'
 import useExport from '../hooks/useExport'
 import useRegexTester from '../hooks/useRegexTester'
+import useTemplates from '../hooks/useTemplates'
+import useHistory from '../hooks/useHistory'
+import useWordFrequency from '../hooks/useWordFrequency'
 
 // Components
 import EditorPanel from './EditorPanel'
@@ -20,6 +23,8 @@ import CompareDrawer from './CompareDrawer'
 import { RandomTextDrawer, PasswordDrawer } from './GeneratorDrawer'
 import FormatterDrawer from './FormatterDrawer'
 import RegexDrawer from './RegexDrawer'
+import TemplatesDrawer from './TemplatesDrawer'
+import HistoryDrawer from './HistoryDrawer'
 
 export default function TextForm(props) {
     const [text, setText] = useState('')
@@ -36,10 +41,13 @@ export default function TextForm(props) {
     const compare = useTextCompare(text, showAlert)
     const generators = useGenerators(setText, showAlert)
     const formatter = useFormatter(text, setText, setLoading, showAlert)
-    const ai = useAiTools(text, setText, setLoading, setMarkdownMode, setPreviewMode, showAlert)
+    const history = useHistory(setText, showAlert)
+    const ai = useAiTools(text, setText, setLoading, setMarkdownMode, setPreviewMode, showAlert, history.pushHistory)
     const speech = useSpeech(text, setText, showAlert)
     const exportTools = useExport(text, setLoading, showAlert)
     const regex = useRegexTester(text, showAlert)
+    const templates = useTemplates(text, setText, showAlert)
+    const wordFreq = useWordFrequency(text, showAlert, ai.setAiResult, setPreviewMode, history.pushHistory)
 
     // ── Shared URL decode on mount ─────────────────────────────────────────────
     useEffect(() => {
@@ -53,11 +61,13 @@ export default function TextForm(props) {
     // ── Generic API handler ────────────────────────────────────────────────────
     const callApi = async (serviceFn, successMsg) => {
         if (!text) return
+        const original = text
         setLoading(true)
         try {
             const data = await serviceFn(text)
             ai.setAiResult({ label: successMsg, result: data.result })
             setPreviewMode('result')
+            history.pushHistory(successMsg, original, data.result)
             showAlert(successMsg, 'success')
         } catch (err) {
             showAlert(err.message || 'API error', 'danger')
@@ -85,6 +95,7 @@ export default function TextForm(props) {
     // ── Hashing (client-side) ────────────────────────────────────────────────
     const handleSha256 = async () => {
         if (!text) return
+        const original = text
         setLoading(true)
         try {
             const data = new TextEncoder().encode(text)
@@ -92,6 +103,7 @@ export default function TextForm(props) {
             const hash = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('')
             ai.setAiResult({ label: 'SHA-256 Hash', result: hash })
             setPreviewMode('result')
+            history.pushHistory('SHA-256 Hash', original, hash)
             showAlert('SHA-256 hash generated', 'success')
         } catch { showAlert('SHA-256 hashing failed', 'danger') }
         finally { setLoading(false) }
@@ -99,12 +111,14 @@ export default function TextForm(props) {
 
     const handleMd5 = async () => {
         if (!text) return
+        const original = text
         setLoading(true)
         try {
             const md5Module = await import('blueimp-md5')
             const hash = md5Module.default(text)
             ai.setAiResult({ label: 'MD5 Hash', result: hash })
             setPreviewMode('result')
+            history.pushHistory('MD5 Hash', original, hash)
             showAlert('MD5 hash generated', 'success')
         } catch { showAlert('MD5 hashing failed', 'danger') }
         finally { setLoading(false) }
@@ -134,6 +148,7 @@ export default function TextForm(props) {
     // ── JWT Decoder (client-side) ────────────────────────────────────────────
     const handleJwtDecode = () => {
         if (!text) return
+        const original = text
         setLoading(true)
         try {
             const cleaned = text.trim().replace(/\s+/g, '')
@@ -154,6 +169,7 @@ export default function TextForm(props) {
             const result = `=== HEADER ===\n${JSON.stringify(header, null, 2)}\n\n=== PAYLOAD ===\n${JSON.stringify(payload, null, 2)}`
             ai.setAiResult({ label: 'JWT Decoded', result })
             setPreviewMode('result')
+            history.pushHistory('JWT Decoded', original, result)
             showAlert('JWT decoded', 'success')
         } catch (err) { showAlert(err.message || 'Invalid JWT token', 'danger') }
         finally { setLoading(false) }
@@ -196,6 +212,8 @@ export default function TextForm(props) {
         password: { title: 'Password Generator',     color: 'amber' },
         fmt:      { title: 'Formatter Settings',     color: 'slate' },
         regex:    { title: 'Regex Tester',            color: 'teal' },
+        templates:{ title: 'Text Templates',           color: 'amber' },
+        history:  { title: 'History / Undo',           color: 'slate' },
     }
 
     const renderDrawerContent = () => {
@@ -205,6 +223,8 @@ export default function TextForm(props) {
             case 'randtext': return <RandomTextDrawer {...generators} />
             case 'password': return <PasswordDrawer {...generators} showAlert={showAlert} />
             case 'regex': return <RegexDrawer {...regex} disabled={disabled} />
+            case 'templates': return <TemplatesDrawer {...templates} disabled={disabled} />
+            case 'history': return <HistoryDrawer {...history} />
             case 'fmt': return (
                 <FormatterDrawer
                     pendingFmtCfg={formatter.pendingFmtCfg}
@@ -311,6 +331,7 @@ export default function TextForm(props) {
                     handleDownloadDocx={exportTools.handleDownloadDocx}
                     handleDownloadJson={exportTools.handleDownloadJson}
                     handleShare={exportTools.handleShare}
+                    handleWordFrequency={wordFreq.handleWordFrequency}
                     dyslexiaMode={dyslexiaMode}
                     markdownMode={markdownMode}
                 />

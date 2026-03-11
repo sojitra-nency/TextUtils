@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import * as textService from '../services/textService'
 
-export default function useAiTools(text, setText, setLoading, setMarkdownMode, setPreviewMode, showAlert) {
+export default function useAiTools(text, setText, setLoading, setMarkdownMode, setPreviewMode, showAlert, pushHistory) {
     const [aiResult, setAiResult] = useState(null)
     const [toneSetting, setToneSetting] = useState('formal')
     const [formatSetting, setFormatSetting] = useState('paragraph')
@@ -12,11 +12,13 @@ export default function useAiTools(text, setText, setLoading, setMarkdownMode, s
 
     const callAi = async (serviceFn, label, errorMsg) => {
         if (!text) return
+        const original = text
         setLoading(true)
         try {
             const data = await serviceFn(text)
             setAiResult({ label, result: data.result })
             setPreviewMode('result')
+            if (pushHistory) pushHistory(label, original, data.result)
             showAlert(`${label} generated`, 'success')
         } catch (err) {
             showAlert(err.message || errorMsg, 'danger')
@@ -37,14 +39,20 @@ export default function useAiTools(text, setText, setLoading, setMarkdownMode, s
     const handleParaphrase       = () => callAi(textService.paraphraseText,           'Paraphrase',        'Paraphrasing failed')
     const handleSentiment        = () => callAi(textService.analyzeSentiment,         'Sentiment',         'Sentiment analysis failed')
     const handleLengthenText     = () => callAi(textService.lengthenText,             'Lengthened',        'Text lengthening failed')
+    const handleEli5             = () => callAi(textService.eli5Text,                 'ELI5',              'ELI5 simplification failed')
+    const handleProofread        = () => callAi(textService.proofreadText,            'Proofread',         'Proofreading failed')
+    const handleGenerateTitle    = () => callAi(textService.generateTitle,            'Titles',            'Title generation failed')
 
     const handleChangeFormat = async () => {
         if (!text) return
+        const original = text
         setLoading(true)
         try {
+            const label = `Format (${formatSetting})`
             const data = await textService.changeFormat(text, formatSetting)
-            setAiResult({ label: `Format (${formatSetting})`, result: data.result })
+            setAiResult({ label, result: data.result })
             setPreviewMode('result')
+            if (pushHistory) pushHistory(label, original, data.result)
             showAlert(`Reformatted as ${formatSetting}`, 'success')
         } catch (err) {
             showAlert(err.message || 'Format changing failed', 'danger')
@@ -55,11 +63,14 @@ export default function useAiTools(text, setText, setLoading, setMarkdownMode, s
 
     const handleChangeTone = async () => {
         if (!text) return
+        const original = text
         setLoading(true)
         try {
+            const label = `Tone (${toneSetting})`
             const data = await textService.changeTone(text, toneSetting)
-            setAiResult({ label: `Tone (${toneSetting})`, result: data.result })
+            setAiResult({ label, result: data.result })
             setPreviewMode('result')
+            if (pushHistory) pushHistory(label, original, data.result)
             showAlert(`Tone changed to ${toneSetting}`, 'success')
         } catch (err) {
             showAlert(err.message || 'Tone changing failed', 'danger')
@@ -70,11 +81,14 @@ export default function useAiTools(text, setText, setLoading, setMarkdownMode, s
 
     const handleTranslate = async () => {
         if (!text) return
+        const original = text
         setLoading(true)
         try {
+            const label = `Translation (${translateLang})`
             const data = await textService.translateText(text, translateLang)
-            setAiResult({ label: `Translation (${translateLang})`, result: data.result })
+            setAiResult({ label, result: data.result })
             setPreviewMode('result')
+            if (pushHistory) pushHistory(label, original, data.result)
             showAlert(`Translated to ${translateLang}`, 'success')
         } catch (err) {
             showAlert(err.message || 'Translation failed', 'danger')
@@ -85,11 +99,14 @@ export default function useAiTools(text, setText, setLoading, setMarkdownMode, s
 
     const handleTransliterate = async () => {
         if (!text) return
+        const original = text
         setLoading(true)
         try {
+            const label = `Transliteration (${translitLang})`
             const data = await textService.transliterateText(text, translitLang)
-            setAiResult({ label: `Transliteration (${translitLang})`, result: data.result })
+            setAiResult({ label, result: data.result })
             setPreviewMode('result')
+            if (pushHistory) pushHistory(label, original, data.result)
             showAlert(`Transliterated to ${translitLang} script`, 'success')
         } catch (err) {
             showAlert(err.message || 'Transliteration failed', 'danger')
@@ -118,6 +135,7 @@ export default function useAiTools(text, setText, setLoading, setMarkdownMode, s
         handleTweetShorten, handleEmailRewrite, handleKeywords,
         handleSummarize, handleFixGrammar, handleParaphrase,
         handleSentiment, handleLengthenText,
+        handleEli5, handleProofread, handleGenerateTitle,
         handleChangeFormat, handleChangeTone, handleTranslate, handleTransliterate,
         handleAiAccept, handleAiDismiss,
     }

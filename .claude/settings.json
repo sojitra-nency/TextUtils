@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\(''/home/dev/Documents/ME/TextUtils/backend/app/services/ai_service.py''\\).read\\(\\)\\); print\\(''Syntax OK''\\)\")",
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\(''/home/dev/Documents/ME/TextUtils/backend/app/api/v1/endpoints/text.py''\\).read\\(\\)\\); print\\(''Syntax OK''\\)\")"
+    ]
+  }
+}
