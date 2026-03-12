@@ -75,4 +75,12 @@ export const ENDPOINTS = {
   GENERATE_TITLE: '/api/v1/text/generate-title',
   REFACTOR_PROMPT: '/api/v1/text/refactor-prompt',
   CHANGE_FORMAT: '/api/v1/text/change-format',
+
+  // Auth
+  AUTH_REGISTER: '/api/v1/auth/register',
+  AUTH_LOGIN: '/api/v1/auth/login',
+  AUTH_REFRESH: '/api/v1/auth/refresh',
+  AUTH_LOGOUT: '/api/v1/auth/logout',
+  AUTH_ME: '/api/v1/auth/me',
+  AUTH_GOOGLE: '/api/v1/auth/google',
 }

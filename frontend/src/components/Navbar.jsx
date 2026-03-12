@@ -1,10 +1,24 @@
 import { useState } from 'react'
 import PropTypes from 'prop-types'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useLogoutMutation } from '../store/api/authApi'
+import { ROUTES } from '../constants'
 
 export default function Navbar(props) {
     const [menuOpen, setMenuOpen] = useState(false)
     const { pathname } = useLocation()
+    const navigate = useNavigate()
+    const [logout] = useLogoutMutation()
+
+    const handleLogout = async () => {
+        try {
+            await logout().unwrap()
+            props.showAlert('Logged out', 'success')
+            navigate(ROUTES.HOME)
+        } catch {
+            props.showAlert('Logout failed', 'danger')
+        }
+    }
 
     return (
         <nav className="tu-navbar">
@@ -33,6 +47,20 @@ export default function Navbar(props) {
             </ul>
 
             <div className="tu-nav-right">
+                {/* Auth section */}
+                {props.isAuthenticated ? (
+                    <div className="tu-nav-auth">
+                        <span className="tu-nav-user">{props.user?.display_name}</span>
+                        <button className="tu-nav-auth-btn" onClick={handleLogout}>
+                            Logout
+                        </button>
+                    </div>
+                ) : (
+                    <Link className="tu-nav-auth-btn" to={ROUTES.LOGIN}>
+                        Login
+                    </Link>
+                )}
+
                 {/* Theme toggle */}
                 <button
                     className="tu-theme-btn"
@@ -62,6 +90,15 @@ export default function Navbar(props) {
                     <Link className="tu-mobile-link" to="/about" onClick={() => setMenuOpen(false)}>
                         {props.about}
                     </Link>
+                    {props.isAuthenticated ? (
+                        <button className="tu-mobile-link" onClick={() => { setMenuOpen(false); handleLogout() }}>
+                            Logout
+                        </button>
+                    ) : (
+                        <Link className="tu-mobile-link" to={ROUTES.LOGIN} onClick={() => setMenuOpen(false)}>
+                            Login
+                        </Link>
+                    )}
                 </div>
             )}
         </nav>
@@ -72,4 +109,9 @@ Navbar.propTypes = {
     title: PropTypes.string.isRequired,
     home: PropTypes.string.isRequired,
     about: PropTypes.string.isRequired,
+    mode: PropTypes.string.isRequired,
+    toggleMode: PropTypes.func.isRequired,
+    user: PropTypes.object,
+    isAuthenticated: PropTypes.bool.isRequired,
+    showAlert: PropTypes.func.isRequired,
 }

@@ -1,8 +1,10 @@
 import { useState } from 'react'
+import { useSelector } from 'react-redux'
 import { useTransformTextMutation } from '../store/api/textApi'
 import { ENDPOINTS } from '../constants/endpoints'
 
 export default function useAiTools(text, setText, setMarkdownMode, setPreviewMode, showAlert, pushHistory) {
+    const { accessToken } = useSelector((s) => s.auth)
     const [aiResult, setAiResult] = useState(null)
     const [toneSetting, setToneSetting] = useState('formal')
     const [formatSetting, setFormatSetting] = useState('paragraph')
@@ -15,6 +17,10 @@ export default function useAiTools(text, setText, setMarkdownMode, setPreviewMod
 
     const callAi = async (endpoint, label, errorMsg) => {
         if (!text) return
+        if (!accessToken) {
+            showAlert('Please log in to use AI tools', 'warning')
+            return
+        }
         const original = text
         try {
             const data = await transformText({ endpoint, text }).unwrap()

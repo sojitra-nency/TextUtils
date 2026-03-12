@@ -29,6 +29,7 @@ services:
     volumes:
       - ./backend:/app      # mount source — uvicorn --reload picks up changes
       - /app/.venv          # anonymous volume keeps host .venv out of the container
+      - fixmytext-data:/app/data
     env_file:
       - ./backend/.env
     environment:
@@ -36,6 +37,10 @@ services:
       - PORT=8000
       - DEBUG=true
       - ALLOWED_ORIGINS=["http://localhost:3000","http://127.0.0.1:3000"]
+      - DATABASE_URL=sqlite+aiosqlite:///./data/fixmytext.db
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
     networks:
       - fixmytext-net
 
@@ -73,6 +78,8 @@ services:
     restart: unless-stopped
     ports:
       - "8000:8000"
+    volumes:
+      - fixmytext-data:/app/data
     env_file:
       - ./backend/.env
     environment:
@@ -80,6 +87,10 @@ services:
       - PORT=8000
       - DEBUG=false
       - ALLOWED_ORIGINS=["http://localhost:3000","http://frontend-prod:80"]
+      - DATABASE_URL=sqlite+aiosqlite:///./data/fixmytext.db
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
     networks:
       - fixmytext-net
     healthcheck:
@@ -119,3 +130,7 @@ services:
 networks:
   fixmytext-net:
     driver: bridge
+
+# ── Volumes ───────────────────────────────────────────────────────────────────
+volumes:
+  fixmytext-data:

@@ -15,4 +15,7 @@ export const ALERT_TIMEOUT_MS = 1500;
 export const ROUTES = {
     HOME: '/',
     ABOUT: '/about',
+    LOGIN: '/login',
+    SIGNUP: '/signup',
+    GOOGLE_CALLBACK: '/auth/google/callback',
 };
