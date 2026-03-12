@@ -1,5 +1,5 @@
 /**
- * API endpoint paths for the TextUtils backend.
+ * API endpoint paths for the FixMyText backend.
  * Used with RTK Query's transformText mutation.
  */
 

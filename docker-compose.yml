@@ -1,4 +1,4 @@
-# TextUtils — unified compose file with profiles.
+# FixMyText — unified compose file with profiles.
 #
 # Profiles:
 #   dev   development stack  (hot reload, source volumes)
@@ -15,7 +15,7 @@
 services:
 
   # ══════════════════════════════════════════════════════════════════════════
-  # DEV  —  profile: textutils-dev
+  # DEV  —  profile: fixmytext-dev
   # ══════════════════════════════════════════════════════════════════════════
 
   backend-dev:
@@ -23,7 +23,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
-    container_name: textutils-backend-dev
+    container_name: fixmytext-backend-dev
     ports:
       - "8000:8000"
     volumes:
@@ -37,14 +37,14 @@ services:
       - DEBUG=true
       - ALLOWED_ORIGINS=["http://localhost:3000","http://127.0.0.1:3000"]
     networks:
-      - textutils-net
+      - fixmytext-net
 
   frontend-dev:
     profiles: ["dev"]
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
-    container_name: textutils-frontend-dev
+    container_name: fixmytext-frontend-dev
     ports:
       - "3000:3000"
     volumes:
@@ -56,11 +56,11 @@ services:
     depends_on:
       - backend-dev
     networks:
-      - textutils-net
+      - fixmytext-net
 
 
   # ══════════════════════════════════════════════════════════════════════════
-  # PROD  —  profile: textutils-prod
+  # PROD  —  profile: fixmytext-prod
   # ══════════════════════════════════════════════════════════════════════════
 
   backend-prod:
@@ -69,7 +69,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       target: runtime
-    container_name: textutils-backend-prod
+    container_name: fixmytext-backend-prod
     restart: unless-stopped
     ports:
       - "8000:8000"
@@ -81,7 +81,7 @@ services:
       - DEBUG=false
       - ALLOWED_ORIGINS=["http://localhost:3000","http://frontend-prod:80"]
     networks:
-      - textutils-net
+      - fixmytext-net
     healthcheck:
       test: ["CMD", "python", "-c",
              "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
@@ -98,7 +98,7 @@ services:
       target: runtime
       args:
         VITE_API_URL: http://localhost:8000
-    container_name: textutils-frontend-prod
+    container_name: fixmytext-frontend-prod
     restart: unless-stopped
     ports:
       - "3000:80"
@@ -106,7 +106,7 @@ services:
       backend-prod:
         condition: service_healthy
     networks:
-      - textutils-net
+      - fixmytext-net
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:80"]
       interval: 30s
@@ -117,5 +117,5 @@ services:
 
 # ── Shared network ────────────────────────────────────────────────────────────
 networks:
-  textutils-net:
+  fixmytext-net:
     driver: bridge

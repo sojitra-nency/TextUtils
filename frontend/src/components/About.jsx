@@ -19,7 +19,7 @@ export default function About(props) {
                 </h2>
                 <div id="collapseOne" className="accordion-collapse collapse show" data-bs-parent="#accordionExample">
                 <div className="accordion-body" style={mystyle}>
-                    TextUtils is a versatile text manipulation tool designed to empower users with the ability to analyze and transform text effortlessly. Whether you need to convert text to uppercase, lowercase, or sentence case, TextUtils provides a range of functions to suit your needs. With features like word count, character count, and sentence count, users can gain valuable insights into their text composition, helping them make informed decisions in their writing and communication.
+                    FixMyText is a versatile text manipulation tool designed to empower users with the ability to analyze and transform text effortlessly. Whether you need to convert text to uppercase, lowercase, or sentence case, FixMyText provides a range of functions to suit your needs. With features like word count, character count, and sentence count, users can gain valuable insights into their text composition, helping them make informed decisions in their writing and communication.
                 </div>
                 </div>
             </div>
@@ -31,7 +31,7 @@ export default function About(props) {
                 </h2>
                 <div id="collapseTwo" className="accordion-collapse collapse" data-bs-parent="#accordionExample">
                 <div className="accordion-body" style={mystyle}>
-                    TextUtils is committed to providing a seamless and accessible text manipulation experience for all users, completely free of charge. We believe that everyone should have access to powerful tools that enhance productivity and creativity without any financial barriers. Our platform is open to all, allowing users to harness the full potential of text manipulation without limitations.
+                    FixMyText is committed to providing a seamless and accessible text manipulation experience for all users, completely free of charge. We believe that everyone should have access to powerful tools that enhance productivity and creativity without any financial barriers. Our platform is open to all, allowing users to harness the full potential of text manipulation without limitations.
                 </div>
                 </div>
             </div>
@@ -43,7 +43,7 @@ export default function About(props) {
                 </h2>
                 <div id="collapseThree" className="accordion-collapse collapse" data-bs-parent="#accordionExample">
                 <div className="accordion-body" style={mystyle}>
-                    TextUtils is built with compatibility in mind, ensuring a smooth user experience across various web browsers. Whether you prefer Chrome, Firefox, Safari, or any other modern browser, you can rely on TextUtils to perform consistently and reliably. Our responsive design adapts seamlessly to different screen sizes and devices, allowing you to access and utilize our tools from anywhere, anytime.
+                    FixMyText is built with compatibility in mind, ensuring a smooth user experience across various web browsers. Whether you prefer Chrome, Firefox, Safari, or any other modern browser, you can rely on FixMyText to perform consistently and reliably. Our responsive design adapts seamlessly to different screen sizes and devices, allowing you to access and utilize our tools from anywhere, anytime.
                 </div>
                 </div>
             </div>

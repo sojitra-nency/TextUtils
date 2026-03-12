@@ -6,7 +6,7 @@
  */
 
 /** Application name displayed in the UI */
-export const APP_NAME = 'TextUtils';
+export const APP_NAME = 'FixMyText';
 
 /** Alert auto-dismiss duration in milliseconds */
 export const ALERT_TIMEOUT_MS = 1500;

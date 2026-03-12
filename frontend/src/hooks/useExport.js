@@ -9,14 +9,14 @@ export default function useExport(text, setLoading, showAlert) {
     }
 
     const handleDownloadTxt = () => {
-        triggerDownload(new Blob([text], { type: 'text/plain' }), 'textutils.txt')
+        triggerDownload(new Blob([text], { type: 'text/plain' }), 'fixmytext.txt')
         showAlert('Downloaded as TXT', 'success')
     }
 
     const handleDownloadJson = () => {
         triggerDownload(
             new Blob([JSON.stringify({ text }, null, 2)], { type: 'application/json' }),
-            'textutils.json'
+            'fixmytext.json'
         )
         showAlert('Downloaded as JSON', 'success')
     }
@@ -28,7 +28,7 @@ export default function useExport(text, setLoading, showAlert) {
             const doc = new jsPDF()
             const lines = doc.splitTextToSize(text, 180)
             doc.text(lines, 14, 20)
-            doc.save('textutils.pdf')
+            doc.save('fixmytext.pdf')
             showAlert('Downloaded as PDF', 'success')
         } catch (err) {
             showAlert('PDF export failed', 'danger')
@@ -46,7 +46,7 @@ export default function useExport(text, setLoading, showAlert) {
             )
             const wordDoc = new Document({ sections: [{ properties: {}, children: paragraphs }] })
             const blob = await Packer.toBlob(wordDoc)
-            triggerDownload(blob, 'textutils.docx')
+            triggerDownload(blob, 'fixmytext.docx')
             showAlert('Downloaded as DOCX', 'success')
         } catch (err) {
             showAlert('DOCX export failed', 'danger')

@@ -1,6 +1,6 @@
-# TextUtils
+# FixMyText
 
-TextUtils is a full-stack text manipulation tool built with **React** (frontend) and **Python FastAPI** (backend). All text transformations are processed server-side by the API — the React frontend is a pure UI layer that calls the backend for every operation.
+FixMyText is a full-stack text manipulation tool built with **React** (frontend) and **Python FastAPI** (backend). All text transformations are processed server-side by the API — the React frontend is a pure UI layer that calls the backend for every operation.
 
 ---
 
@@ -29,7 +29,7 @@ TextUtils is a full-stack text manipulation tool built with **React** (frontend)
 ## Project Structure
 
 ```
-TextUtils/
+FixMyText/
 ├── backend/                       # FastAPI application
 │   ├── app/
 │   │   ├── api/v1/
@@ -64,7 +64,7 @@ TextUtils/
 │   ├── Dockerfile.dev             # Development image (single-stage, CRA dev server)
 │   └── .env.example
 │
-├── docker-compose.yml             # Unified compose — profiles: textutils-dev / textutils-prod
+├── docker-compose.yml             # Unified compose — profiles: fixmytext-dev / fixmytext-prod
 ├── package.json                   # Monorepo helper scripts
 └── README.md
 ```
@@ -143,17 +143,17 @@ Both dev and prod stacks live in a single `docker-compose.yml`, separated by pro
 
 | Profile | Services | Use case |
 |---|---|---|
-| `textutils-dev` | `backend-dev`, `frontend-dev` | Hot reload, source volumes |
-| `textutils-prod` | `backend-prod`, `frontend-prod` | Multi-stage builds, nginx |
+| `fixmytext-dev` | `backend-dev`, `frontend-dev` | Hot reload, source volumes |
+| `fixmytext-prod` | `backend-prod`, `frontend-prod` | Multi-stage builds, nginx |
 
-#### Development (profile: `textutils-dev`)
+#### Development (profile: `fixmytext-dev`)
 
 Source code is mounted as a volume — **no rebuild needed on file changes**.
 
 ```bash
 npm run docker:dev
 # or directly:
-docker compose --profile textutils-dev up --build
+docker compose --profile fixmytext-dev up --build
 ```
 
 | Service  | URL                        | Notes                       |
@@ -172,14 +172,14 @@ npm run docker:dev:logs     # tail logs
 > - Frontend: CRA polls for changes via `CHOKIDAR_USEPOLLING=true`; HMR websocket fixed with `WDS_SOCKET_PORT=0`
 > - Only `src/` and `public/` are mounted for the frontend — `node_modules` stays inside the container
 
-#### Production (profile: `textutils-prod`)
+#### Production (profile: `fixmytext-prod`)
 
 Multi-stage builds, nginx for frontend, no `--reload`.
 
 ```bash
 npm run docker:up
 # or directly:
-docker compose --profile textutils-prod up --build
+docker compose --profile fixmytext-prod up --build
 ```
 
 | Service  | URL                        | Notes                               |
@@ -271,12 +271,12 @@ cd backend && source .venv/bin/activate && pytest -v
 
 | Script                    | Profile           | Description                          |
 |---------------------------|-------------------|--------------------------------------|
-| `npm run docker:dev`      | `textutils-dev`   | Build + start dev stack (hot reload) |
-| `npm run docker:dev:down` | `textutils-dev`   | Stop dev stack                       |
-| `npm run docker:dev:logs` | `textutils-dev`   | Tail dev container logs              |
-| `npm run docker:up`       | `textutils-prod`  | Build + start prod stack (nginx)     |
-| `npm run docker:down`     | `textutils-prod`  | Stop prod stack                      |
-| `npm run docker:logs`     | `textutils-prod`  | Tail prod container logs             |
+| `npm run docker:dev`      | `fixmytext-dev`   | Build + start dev stack (hot reload) |
+| `npm run docker:dev:down` | `fixmytext-dev`   | Stop dev stack                       |
+| `npm run docker:dev:logs` | `fixmytext-dev`   | Tail dev container logs              |
+| `npm run docker:up`       | `fixmytext-prod`  | Build + start prod stack (nginx)     |
+| `npm run docker:down`     | `fixmytext-prod`  | Stop prod stack                      |
+| `npm run docker:logs`     | `fixmytext-prod`  | Tail prod container logs             |
 
 ---
 
