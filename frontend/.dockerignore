@@ -8,6 +8,7 @@ build/
 *.md
 
 # Local env files (secrets should be passed at runtime)
+.env
 .env.local
 .env.*.local
 

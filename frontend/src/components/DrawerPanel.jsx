@@ -1,4 +1,3 @@
-import React from 'react'
 
 const DRAWER_COLORS = {
     teal:   { bg: 'rgba(20,184,166,0.08)',  border: '#14B8A6', text: '#0f766e' },

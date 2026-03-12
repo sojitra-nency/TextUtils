@@ -48,12 +48,11 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./frontend/src:/app/src          # mount src — CRA hot-reloads on change
+      - ./frontend/src:/app/src          # mount src — Vite hot-reloads on change
       - ./frontend/public:/app/public    # mount public assets
+      - ./frontend/index.html:/app/index.html
     environment:
-      - REACT_APP_API_URL=http://localhost:8000
-      - CHOKIDAR_USEPOLLING=true
-      - WDS_SOCKET_PORT=0
+      - VITE_API_URL=http://localhost:8000
     depends_on:
       - backend-dev
     networks:
@@ -98,7 +97,7 @@ services:
       dockerfile: Dockerfile
       target: runtime
       args:
-        REACT_APP_API_URL: http://localhost:8000
+        VITE_API_URL: http://localhost:8000
     container_name: textutils-frontend-prod
     restart: unless-stopped
     ports:

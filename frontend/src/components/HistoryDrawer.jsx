@@ -1,4 +1,3 @@
-import React from 'react'
 
 function timeAgo(ts) {
     const s = Math.floor((Date.now() - ts) / 1000)

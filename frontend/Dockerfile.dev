@@ -1,19 +1,14 @@
 # Development — minimal single-stage image.
-# Source code is mounted as a volume; CRA dev server hot-reloads on change.
+# Source code is mounted as a volume; Vite dev server hot-reloads on change.
 
 FROM node:20-alpine
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json vite.config.js ./
 RUN npm ci
-
-# CHOKIDAR_USEPOLLING: enables file-change detection inside Docker (inotify unreliable in containers).
-# WDS_SOCKET_PORT=0: tells webpack-dev-server to use the same port as the page for HMR websocket.
-ENV CHOKIDAR_USEPOLLING=true
-ENV WDS_SOCKET_PORT=0
 
 EXPOSE 3000
 
 # Source mounted at runtime via docker-compose volumes.
-CMD ["npm", "start"]
+CMD ["npm", "run", "dev"]

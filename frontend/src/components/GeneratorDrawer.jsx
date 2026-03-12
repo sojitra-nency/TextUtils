@@ -1,4 +1,3 @@
-import React from 'react'
 
 export function RandomTextDrawer({
     textGenType, setTextGenType, textGenCount, setTextGenCount, handleGenerateText,

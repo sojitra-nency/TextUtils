@@ -1,4 +1,3 @@
-import React from 'react'
 
 export default function Tile({ icon, label, onClick, color, active, disabled }) {
     return (

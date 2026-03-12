@@ -116,11 +116,11 @@ cd frontend
 # Install dependencies
 npm install
 
-# Copy env file (points React at the local backend)
-cp .env.example .env.local
+# Copy env file (points Vite at the local backend)
+cp .env.example .env
 
 # Start the dev server
-npm start
+npm run dev
 ```
 
 App opens at `http://localhost:3000`.
@@ -206,10 +206,10 @@ DEBUG=true
 ALLOWED_ORIGINS=["http://localhost:3000","http://127.0.0.1:3000"]
 ```
 
-### Frontend — `frontend/.env.local` (copy from `frontend/.env.example`)
+### Frontend — `frontend/.env` (copy from `frontend/.env.example`)
 
 ```env
-REACT_APP_API_URL=http://localhost:8000
+VITE_API_URL=http://localhost:8000
 ```
 
 ---

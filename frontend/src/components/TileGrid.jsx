@@ -1,12 +1,10 @@
-import React from 'react'
 import Tile from './Tile'
+import { ENDPOINTS } from '../constants/endpoints'
 
 export default function TileGrid({
     disabled, activePanel, togglePanel, listening,
     // API call handler
     callApi,
-    // Text service
-    textService,
     // AI handlers
     ai,
     // Text tool handlers
@@ -40,23 +38,23 @@ export default function TileGrid({
                 <span className="tu-tile-sec-label" style={{ color: '#7C3AED' }}>✦ Transform</span>
                 <div className="tu-tile-row">
                     <Tile icon="AA" label="Uppercase" color="violet" disabled={disabled}
-                        onClick={() => callApi(textService.toUpperCase, 'Converted to uppercase')} />
+                        onClick={() => callApi(ENDPOINTS.UPPERCASE, 'Converted to uppercase')} />
                     <Tile icon="aa" label="Lowercase" color="violet" disabled={disabled}
-                        onClick={() => callApi(textService.toLowerCase, 'Converted to lowercase')} />
+                        onClick={() => callApi(ENDPOINTS.LOWERCASE, 'Converted to lowercase')} />
                     <Tile icon="Tt" label="Title Case" color="violet" disabled={disabled}
-                        onClick={() => callApi(textService.toTitleCase, 'Converted to title case')} />
+                        onClick={() => callApi(ENDPOINTS.TITLE_CASE, 'Converted to title case')} />
                     <Tile icon="Ss." label="Sentence" color="violet" disabled={disabled}
-                        onClick={() => callApi(textService.toSentenceCase, 'Converted to sentence case')} />
+                        onClick={() => callApi(ENDPOINTS.SENTENCE_CASE, 'Converted to sentence case')} />
                     <Tile icon="aA" label="Toggle" color="violet" disabled={disabled}
-                        onClick={() => callApi(textService.toInverseCase, 'Case toggled')} />
+                        onClick={() => callApi(ENDPOINTS.INVERSE_CASE, 'Case toggled')} />
                     <Tile icon="PP" label="PascalCase" color="violet" disabled={disabled}
-                        onClick={() => callApi(textService.toUpperCamelCase, 'Converted to PascalCase')} />
+                        onClick={() => callApi(ENDPOINTS.UPPER_CAMEL_CASE, 'Converted to PascalCase')} />
                     <Tile icon="cc" label="camelCase" color="violet" disabled={disabled}
-                        onClick={() => callApi(textService.toLowerCamelCase, 'Converted to camelCase')} />
+                        onClick={() => callApi(ENDPOINTS.LOWER_CAMEL_CASE, 'Converted to camelCase')} />
                     <Tile icon="s_c" label="snake_case" color="violet" disabled={disabled}
-                        onClick={() => callApi(textService.toSnakeCase, 'Converted to snake_case')} />
+                        onClick={() => callApi(ENDPOINTS.SNAKE_CASE, 'Converted to snake_case')} />
                     <Tile icon="k-c" label="kebab-case" color="violet" disabled={disabled}
-                        onClick={() => callApi(textService.toKebabCase, 'Converted to kebab-case')} />
+                        onClick={() => callApi(ENDPOINTS.KEBAB_CASE, 'Converted to kebab-case')} />
                 </div>
             </div>
 
@@ -65,17 +63,17 @@ export default function TileGrid({
                 <span className="tu-tile-sec-label" style={{ color: '#64748B' }}>⎵ Whitespace</span>
                 <div className="tu-tile-row">
                     <Tile icon="⎵→" label="Trim Extra" color="slate" disabled={disabled}
-                        onClick={() => callApi(textService.removeExtraSpaces, 'Extra spaces removed')} />
+                        onClick={() => callApi(ENDPOINTS.REMOVE_EXTRA_SPACES, 'Extra spaces removed')} />
                     <Tile icon="↵✕" label="No Breaks" color="slate" disabled={disabled}
-                        onClick={() => callApi(textService.removeLineBreaks, 'Line breaks removed')} />
+                        onClick={() => callApi(ENDPOINTS.REMOVE_LINE_BREAKS, 'Line breaks removed')} />
                     <Tile icon="✕⎵" label="Strip All" color="slate" disabled={disabled}
-                        onClick={() => callApi(textService.removeAllSpaces, 'All spaces removed')} />
+                        onClick={() => callApi(ENDPOINTS.REMOVE_ALL_SPACES, 'All spaces removed')} />
                     <Tile icon="</>" label="Strip HTML" color="slate" disabled={disabled}
-                        onClick={() => callApi(textService.stripHtml, 'HTML tags removed')} />
+                        onClick={() => callApi(ENDPOINTS.STRIP_HTML, 'HTML tags removed')} />
                     <Tile icon="àa" label="No Accents" color="slate" disabled={disabled}
-                        onClick={() => callApi(textService.removeAccents, 'Accents removed')} />
+                        onClick={() => callApi(ENDPOINTS.REMOVE_ACCENTS, 'Accents removed')} />
                     <Tile icon='""' label="Toggle Quotes" color="slate" disabled={disabled}
-                        onClick={() => callApi(textService.toggleSmartQuotes, 'Quotes toggled')} />
+                        onClick={() => callApi(ENDPOINTS.TOGGLE_SMART_QUOTES, 'Quotes toggled')} />
                 </div>
             </div>
 

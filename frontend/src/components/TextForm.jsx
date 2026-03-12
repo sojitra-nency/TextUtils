@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react'
-import * as textService from '../services/textService'
+import { useState, useEffect } from 'react'
+import { useTransformTextMutation } from '../store/api/textApi'
+import { ENDPOINTS } from '../constants/endpoints'
 
 // Hooks
 import useFindReplace from '../hooks/useFindReplace'
@@ -28,7 +29,6 @@ import HistoryDrawer from './HistoryDrawer'
 
 export default function TextForm(props) {
     const [text, setText] = useState('')
-    const [loading, setLoading] = useState(false)
     const [dyslexiaMode, setDyslexiaMode] = useState(false)
     const [markdownMode, setMarkdownMode] = useState(false)
     const [activePanel, setActivePanel] = useState(null)
@@ -36,15 +36,22 @@ export default function TextForm(props) {
 
     const showAlert = props.showAlert
 
+    // ── RTK Query mutation ──────────────────────────────────────────────────────
+    const [transformText, { isLoading: rtkLoading }] = useTransformTextMutation()
+
+    // Local loading for client-side operations (hashing, formatter, export)
+    const [localLoading, setLocalLoading] = useState(false)
+    const loading = rtkLoading || localLoading
+
     // ── Hooks ──────────────────────────────────────────────────────────────────
     const findReplace = useFindReplace(text, setText, showAlert)
     const compare = useTextCompare(text, showAlert)
     const generators = useGenerators(setText, showAlert)
-    const formatter = useFormatter(text, setText, setLoading, showAlert)
+    const formatter = useFormatter(text, setText, setLocalLoading, showAlert)
     const history = useHistory(setText, showAlert)
-    const ai = useAiTools(text, setText, setLoading, setMarkdownMode, setPreviewMode, showAlert, history.pushHistory)
+    const ai = useAiTools(text, setText, setMarkdownMode, setPreviewMode, showAlert, history.pushHistory)
     const speech = useSpeech(text, setText, showAlert)
-    const exportTools = useExport(text, setLoading, showAlert)
+    const exportTools = useExport(text, setLocalLoading, showAlert)
     const regex = useRegexTester(text, showAlert)
     const templates = useTemplates(text, setText, showAlert)
     const wordFreq = useWordFrequency(text, showAlert, ai.setAiResult, setPreviewMode, history.pushHistory)
@@ -58,21 +65,18 @@ export default function TextForm(props) {
         }
     }, [])
 
-    // ── Generic API handler ────────────────────────────────────────────────────
-    const callApi = async (serviceFn, successMsg) => {
+    // ── Generic API handler (RTK Query) ──────────────────────────────────────
+    const callApi = async (endpoint, successMsg) => {
         if (!text) return
         const original = text
-        setLoading(true)
         try {
-            const data = await serviceFn(text)
+            const data = await transformText({ endpoint, text }).unwrap()
             ai.setAiResult({ label: successMsg, result: data.result })
             setPreviewMode('result')
             history.pushHistory(successMsg, original, data.result)
             showAlert(successMsg, 'success')
         } catch (err) {
-            showAlert(err.message || 'API error', 'danger')
-        } finally {
-            setLoading(false)
+            showAlert(err.data?.detail || err.message || 'API error', 'danger')
         }
     }
 
@@ -83,20 +87,20 @@ export default function TextForm(props) {
     const handleClearPaste = () => { navigator.clipboard.readText().then(t => setText(t)); showAlert('Cleared and pasted', 'success') }
 
     // ── Encoding ───────────────────────────────────────────────────────────────
-    const handleBase64Encode = () => callApi(textService.base64Encode, 'Base64 encoded')
-    const handleBase64Decode = () => callApi(textService.base64Decode, 'Base64 decoded')
-    const handleUrlEncode    = () => callApi(textService.urlEncode,    'URL encoded')
-    const handleUrlDecode    = () => callApi(textService.urlDecode,    'URL decoded')
-    const handleHexEncode    = () => callApi(textService.hexEncode,    'Hex encoded')
-    const handleHexDecode    = () => callApi(textService.hexDecode,    'Hex decoded')
-    const handleMorseEncode  = () => callApi(textService.morseEncode,  'Morse encoded')
-    const handleMorseDecode  = () => callApi(textService.morseDecode,  'Morse decoded')
+    const handleBase64Encode = () => callApi(ENDPOINTS.BASE64_ENCODE, 'Base64 encoded')
+    const handleBase64Decode = () => callApi(ENDPOINTS.BASE64_DECODE, 'Base64 decoded')
+    const handleUrlEncode    = () => callApi(ENDPOINTS.URL_ENCODE,    'URL encoded')
+    const handleUrlDecode    = () => callApi(ENDPOINTS.URL_DECODE,    'URL decoded')
+    const handleHexEncode    = () => callApi(ENDPOINTS.HEX_ENCODE,    'Hex encoded')
+    const handleHexDecode    = () => callApi(ENDPOINTS.HEX_DECODE,    'Hex decoded')
+    const handleMorseEncode  = () => callApi(ENDPOINTS.MORSE_ENCODE,  'Morse encoded')
+    const handleMorseDecode  = () => callApi(ENDPOINTS.MORSE_DECODE,  'Morse decoded')
 
     // ── Hashing (client-side) ────────────────────────────────────────────────
     const handleSha256 = async () => {
         if (!text) return
         const original = text
-        setLoading(true)
+        setLocalLoading(true)
         try {
             const data = new TextEncoder().encode(text)
             const buf = await crypto.subtle.digest('SHA-256', data)
@@ -106,13 +110,13 @@ export default function TextForm(props) {
             history.pushHistory('SHA-256 Hash', original, hash)
             showAlert('SHA-256 hash generated', 'success')
         } catch { showAlert('SHA-256 hashing failed', 'danger') }
-        finally { setLoading(false) }
+        finally { setLocalLoading(false) }
     }
 
     const handleMd5 = async () => {
         if (!text) return
         const original = text
-        setLoading(true)
+        setLocalLoading(true)
         try {
             const md5Module = await import('blueimp-md5')
             const hash = md5Module.default(text)
@@ -121,35 +125,35 @@ export default function TextForm(props) {
             history.pushHistory('MD5 Hash', original, hash)
             showAlert('MD5 hash generated', 'success')
         } catch { showAlert('MD5 hashing failed', 'danger') }
-        finally { setLoading(false) }
+        finally { setLocalLoading(false) }
     }
 
     // ── Text Tools ─────────────────────────────────────────────────────────────
-    const handleReverseText      = () => callApi(textService.reverseText,          'Text reversed')
-    const handleSortAsc          = () => callApi(textService.sortLinesAsc,         'Lines sorted A → Z')
-    const handleSortDesc         = () => callApi(textService.sortLinesDesc,        'Lines sorted Z → A')
-    const handleRemoveDuplicates = () => callApi(textService.removeDuplicateLines, 'Duplicate lines removed')
-    const handleReverseLines     = () => callApi(textService.reverseLines,        'Lines reversed')
-    const handleNumberLines      = () => callApi(textService.numberLines,         'Lines numbered')
-    const handleRot13            = () => callApi(textService.rot13,               'ROT13 applied')
+    const handleReverseText      = () => callApi(ENDPOINTS.REVERSE,                'Text reversed')
+    const handleSortAsc          = () => callApi(ENDPOINTS.SORT_LINES_ASC,         'Lines sorted A → Z')
+    const handleSortDesc         = () => callApi(ENDPOINTS.SORT_LINES_DESC,        'Lines sorted Z → A')
+    const handleRemoveDuplicates = () => callApi(ENDPOINTS.REMOVE_DUPLICATE_LINES, 'Duplicate lines removed')
+    const handleReverseLines     = () => callApi(ENDPOINTS.REVERSE_LINES,          'Lines reversed')
+    const handleNumberLines      = () => callApi(ENDPOINTS.NUMBER_LINES,           'Lines numbered')
+    const handleRot13            = () => callApi(ENDPOINTS.ROT13,                  'ROT13 applied')
 
     // ── Escape / Unescape ──────────────────────────────────────────────────────
-    const handleJsonEscape   = () => callApi(textService.jsonEscape,   'JSON escaped')
-    const handleJsonUnescape = () => callApi(textService.jsonUnescape, 'JSON unescaped')
-    const handleHtmlEscape   = () => callApi(textService.htmlEscape,   'HTML escaped')
-    const handleHtmlUnescape = () => callApi(textService.htmlUnescape, 'HTML unescaped')
+    const handleJsonEscape   = () => callApi(ENDPOINTS.JSON_ESCAPE,   'JSON escaped')
+    const handleJsonUnescape = () => callApi(ENDPOINTS.JSON_UNESCAPE, 'JSON unescaped')
+    const handleHtmlEscape   = () => callApi(ENDPOINTS.HTML_ESCAPE,   'HTML escaped')
+    const handleHtmlUnescape = () => callApi(ENDPOINTS.HTML_UNESCAPE, 'HTML unescaped')
 
     // ── Developer Tools ────────────────────────────────────────────────────────
-    const handleJsonFormat = () => callApi(textService.formatJson, 'JSON formatted')
-    const handleJsonToYaml = () => callApi(textService.jsonToYaml, 'Converted to YAML')
-    const handleCsvToJson  = () => callApi(textService.csvToJson,  'CSV converted to JSON')
-    const handleJsonToCsv  = () => callApi(textService.jsonToCsv,  'JSON converted to CSV')
+    const handleJsonFormat = () => callApi(ENDPOINTS.FORMAT_JSON, 'JSON formatted')
+    const handleJsonToYaml = () => callApi(ENDPOINTS.JSON_TO_YAML, 'Converted to YAML')
+    const handleCsvToJson  = () => callApi(ENDPOINTS.CSV_TO_JSON,  'CSV converted to JSON')
+    const handleJsonToCsv  = () => callApi(ENDPOINTS.JSON_TO_CSV,  'JSON converted to CSV')
 
     // ── JWT Decoder (client-side) ────────────────────────────────────────────
     const handleJwtDecode = () => {
         if (!text) return
         const original = text
-        setLoading(true)
+        setLocalLoading(true)
         try {
             const cleaned = text.trim().replace(/\s+/g, '')
             const parts = cleaned.split('.')
@@ -172,7 +176,7 @@ export default function TextForm(props) {
             history.pushHistory('JWT Decoded', original, result)
             showAlert('JWT decoded', 'success')
         } catch (err) { showAlert(err.message || 'Invalid JWT token', 'danger') }
-        finally { setLoading(false) }
+        finally { setLocalLoading(false) }
     }
 
     // ── Accessibility ──────────────────────────────────────────────────────────
@@ -286,7 +290,6 @@ export default function TextForm(props) {
                     togglePanel={togglePanel}
                     listening={speech.listening}
                     callApi={callApi}
-                    textService={textService}
                     ai={ai}
                     handleReverseText={handleReverseText}
                     handleReverseLines={handleReverseLines}
