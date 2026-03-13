@@ -1,0 +1,247 @@
+/* ═══════════════════════════════════════════════════════
+   Tool Panel — VSCode Explorer Sidebar Style
+   ═══════════════════════════════════════════════════════ */
+
+/* ── Panel container ──────────────────────────────── */
+.tu-tpanel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── Category tabs (horizontal strip at top) ──────── */
+.tu-tpanel-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.tu-tpanel-tab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  border-radius: 3px;
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  font-size: 0.62rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--t);
+  white-space: nowrap;
+}
+
+.tu-tpanel-tab:hover {
+  background: var(--list-hover);
+  color: var(--text-2);
+}
+
+.tu-tpanel-tab--active {
+  background: var(--list-active);
+  color: var(--tab-active-text);
+}
+
+.tu-tpanel-tab-icon {
+  font-size: 0.7rem;
+}
+
+.tu-tpanel-tab-label {
+  font-size: 0.6rem;
+}
+
+/* ── Tool list (scrollable, file-tree style) ──────── */
+.tu-tpanel-list {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 2px 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.tu-tpanel-list::-webkit-scrollbar {
+  width: 6px;
+}
+.tu-tpanel-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.tu-tpanel-list::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+.tu-tpanel-list::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+}
+
+/* ── Tool item (VSCode list item style) ───────────── */
+.tu-titem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 16px;
+  cursor: pointer;
+  height: 30px;
+  position: relative;
+}
+
+/* ── Tool item wrapper ─────────────────────────────── */
+.tu-titem-wrap {
+  border-left: 2px solid transparent;
+  position: relative;
+}
+
+.tu-titem-wrap--hover {
+  background: var(--list-hover);
+}
+
+/* ── VSCode-style tooltip (fixed position, escapes overflow) ── */
+.tu-titem-tooltip {
+  position: fixed;
+  padding: 4px 8px;
+  background: #252526;
+  color: #CCCCCC;
+  font-size: 0.75rem;
+  font-weight: 400;
+  font-family: var(--font-display);
+  white-space: normal;
+  max-width: 280px;
+  border: 1px solid #454545;
+  border-radius: 3px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.36);
+  z-index: 1100;
+  pointer-events: none;
+  line-height: 1.35;
+}
+
+.tu-titem--active {
+  background: var(--list-active);
+  color: var(--tab-active-text);
+}
+
+.tu-titem-wrap:has(.tu-titem--active) {
+  border-left-color: var(--accent);
+  background: var(--list-active);
+}
+
+.tu-titem--disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Icon */
+.tu-titem-icon {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+}
+
+/* VSCode-style icon colors (subtle, no background) */
+.tu-titem-icon--violet  { color: var(--violet); }
+.tu-titem-icon--slate   { color: #848484; }
+.tu-titem-icon--teal    { color: var(--teal); }
+.tu-titem-icon--indigo  { color: var(--indigo); }
+.tu-titem-icon--gray    { color: #848484; }
+.tu-titem-icon--pink    { color: var(--violet); }
+.tu-titem-icon--purple  { color: var(--violet); }
+.tu-titem-icon--amber   { color: var(--amber); }
+.tu-titem-icon--emerald { color: var(--emerald); }
+.tu-titem-icon--rose    { color: var(--rose); }
+
+/* Name */
+.tu-titem-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-display);
+}
+
+.tu-titem--active .tu-titem-name {
+  color: var(--tab-active-text);
+}
+
+/* NEW badge */
+.tu-titem-new {
+  font-size: 0.5rem;
+  font-weight: 700;
+  padding: 0 5px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  border-radius: 10px;
+  background: var(--badge-bg);
+  color: var(--badge-fg);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+}
+
+/* Select dropdown (inline) */
+.tu-titem-select {
+  appearance: none;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  color: var(--input-fg);
+  cursor: pointer;
+  outline: none;
+  max-width: 72px;
+  flex-shrink: 0;
+  transition: border-color var(--t);
+}
+
+.tu-titem-select:hover,
+.tu-titem-select:focus {
+  border-color: var(--accent);
+}
+
+/* Favorite star */
+.tu-titem-fav {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.72rem;
+  opacity: 0;
+  transition: opacity var(--t);
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+  color: var(--text-3);
+}
+
+.tu-titem-wrap:hover .tu-titem-fav {
+  opacity: 0.5;
+}
+
+.tu-titem-fav:hover {
+  opacity: 1 !important;
+}
+
+.tu-titem-fav--active {
+  opacity: 1 !important;
+  color: var(--amber);
+}
+
+/* ── Responsive: hide panel on mobile ─────────────── */
+@media (max-width: 768px) {
+  .tu-tpanel { display: none; }
+}

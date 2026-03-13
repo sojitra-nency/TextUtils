@@ -17,5 +17,4 @@ export const ROUTES = {
     ABOUT: '/about',
     LOGIN: '/login',
     SIGNUP: '/signup',
-    GOOGLE_CALLBACK: '/auth/google/callback',
 };

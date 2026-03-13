@@ -55,15 +55,7 @@ export default function useExport(text, setLoading, showAlert) {
         }
     }
 
-    const handleShare = () => {
-        const encoded = btoa(encodeURIComponent(text))
-        const url = `${window.location.origin}${window.location.pathname}?t=${encoded}`
-        navigator.clipboard.writeText(url)
-        showAlert('Share link copied to clipboard!', 'success')
-    }
-
     return {
         handleDownloadTxt, handleDownloadJson, handleDownloadPdf, handleDownloadDocx,
-        handleShare,
     }
 }

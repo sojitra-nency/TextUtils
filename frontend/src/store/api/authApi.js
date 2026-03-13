@@ -29,9 +29,6 @@ export const authApi = createApi({
     getMe: builder.query({
       query: () => '/api/v1/auth/me',
     }),
-    googleAuth: builder.mutation({
-      query: (body) => ({ url: '/api/v1/auth/google', method: 'POST', body }),
-    }),
   }),
 })
 
@@ -40,6 +37,6 @@ export const {
   useLoginMutation,
   useLogoutMutation,
   useRefreshMutation,
+
   useGetMeQuery,
-  useGoogleAuthMutation,
 } = authApi

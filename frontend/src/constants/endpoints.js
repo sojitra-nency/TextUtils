@@ -82,5 +82,4 @@ export const ENDPOINTS = {
   AUTH_REFRESH: '/api/v1/auth/refresh',
   AUTH_LOGOUT: '/api/v1/auth/logout',
   AUTH_ME: '/api/v1/auth/me',
-  AUTH_GOOGLE: '/api/v1/auth/google',
 }

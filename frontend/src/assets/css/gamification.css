@@ -1,0 +1,653 @@
+/* ═══════════════════════════════════════════════════════
+   Gamification — VSCode Style
+   ═══════════════════════════════════════════════════════ */
+
+/* ── XP Bar (in status bar) ──────────────────────── */
+.tu-xp-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.68rem;
+  color: inherit;
+}
+
+.tu-xp-bar-track {
+  width: 50px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--xp-bar-bg);
+  overflow: hidden;
+}
+
+.tu-xp-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--accent);
+  transition: width 0.5s ease-out;
+}
+
+.tu-xp-bar-level {
+  font-weight: 600;
+  font-size: 0.65rem;
+}
+
+/* ── Streak Badge ────────────────────────────────── */
+.tu-streak {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: inherit;
+}
+
+.tu-streak-flame {
+  font-size: 0.75rem;
+}
+
+/* ── Pipeline Strip ──────────────────────────────── */
+.tu-pipeline {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 6px 12px;
+  background: transparent;
+  overflow-x: auto;
+  scrollbar-width: none;
+  min-height: 32px;
+  flex-wrap: wrap;
+}
+.tu-pipeline::-webkit-scrollbar { display: none; }
+
+.tu-pipeline-node {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-size: 0.62rem;
+  font-weight: 500;
+  color: var(--text-2);
+  white-space: nowrap;
+  font-family: var(--font-mono);
+}
+
+.tu-pipeline-node--input {
+  color: var(--emerald);
+  border-color: rgba(78, 201, 176, 0.3);
+}
+
+.tu-pipeline-node--output {
+  color: var(--accent);
+  border-color: rgba(0, 122, 204, 0.3);
+}
+
+.tu-pipeline-arrow {
+  color: var(--text-3);
+  font-size: 0.72rem;
+  padding: 0 4px;
+  flex-shrink: 0;
+}
+
+.tu-pipeline-clear {
+  margin-left: 6px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-3);
+  font-size: 0.58rem;
+  cursor: pointer;
+  transition: all var(--t);
+}
+
+.tu-pipeline-clear:hover {
+  background: rgba(244,71,71,0.1);
+  border-color: var(--rose);
+  color: var(--rose);
+}
+
+/* ── Smart Suggestions ───────────────────────────── */
+.tu-suggestions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  background: var(--surface-2);
+}
+
+.tu-suggestion-label {
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tu-suggestion-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  font-size: 0.65rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--t);
+}
+
+.tu-suggestion-pill:hover {
+  background: var(--list-active);
+  color: white;
+  border-color: var(--accent);
+}
+
+.tu-suggestion-dismiss {
+  font-size: 0.55rem;
+  opacity: 0.5;
+  cursor: pointer;
+  margin-left: 2px;
+}
+
+.tu-suggestion-dismiss:hover {
+  opacity: 1;
+}
+
+/* ── XP Gain Float ───────────────────────────────── */
+.tu-xp-float {
+  position: fixed;
+  top: 50px;
+  right: 20px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--accent);
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* ── Achievement Toast ───────────────────────────── */
+.tu-achieve-toast {
+  position: fixed;
+  top: 50px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  z-index: 1001;
+}
+
+.tu-achieve-toast-icon {
+  font-size: 1.5rem;
+}
+
+.tu-achieve-toast-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tu-achieve-toast-title {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--amber);
+}
+
+.tu-achieve-toast-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ── Command Palette (VSCode style) ───────────────── */
+.tu-palette-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 9999;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 15vh;
+}
+
+.tu-palette {
+  width: 90%;
+  max-width: 600px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+.tu-palette-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font-size: 0.88rem;
+  outline: none;
+}
+
+.tu-palette-input::placeholder {
+  color: var(--text-3);
+}
+
+.tu-palette-results {
+  max-height: 340px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.tu-palette-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background var(--t);
+}
+
+.tu-palette-item:hover,
+.tu-palette-item--active {
+  background: var(--list-hover);
+}
+
+.tu-palette-item-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+}
+
+.tu-palette-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.tu-palette-item-name {
+  font-size: 0.82rem;
+  color: var(--text);
+}
+
+.tu-palette-item-desc {
+  font-size: 0.65rem;
+  color: var(--text-3);
+}
+
+.tu-palette-empty {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 0.82rem;
+}
+
+.tu-palette-hint {
+  padding: 6px 14px;
+  border-top: 1px solid var(--border);
+  font-size: 0.62rem;
+  color: var(--text-3);
+  text-align: center;
+}
+
+/* ── Onboarding Modal ──────────────────────────────── */
+.tu-onboard-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.tu-onboard {
+  width: 90%;
+  max-width: 460px;
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.tu-onboard-header {
+  padding: 1.5rem 1.5rem 0.5rem;
+  text-align: center;
+}
+
+.tu-onboard-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.tu-onboard-sub {
+  font-size: 0.82rem;
+  color: var(--text-3);
+}
+
+.tu-onboard-personas {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 1rem 1.5rem;
+}
+
+.tu-onboard-persona {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  cursor: pointer;
+  transition: all var(--t);
+}
+
+.tu-onboard-persona:hover {
+  border-color: var(--accent);
+  background: var(--list-hover);
+}
+
+.tu-onboard-persona-icon { font-size: 1.3rem; }
+.tu-onboard-persona-text { display: flex; flex-direction: column; gap: 2px; }
+.tu-onboard-persona-label { font-size: 0.82rem; font-weight: 600; color: var(--text); }
+.tu-onboard-persona-hint { font-size: 0.68rem; color: var(--text-3); }
+
+.tu-onboard-themes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 0 1.5rem 1.5rem;
+}
+
+.tu-onboard-theme {
+  padding: 12px;
+  border-radius: var(--r-md);
+  border: 2px solid var(--border);
+  cursor: pointer;
+  text-align: center;
+  transition: all var(--t);
+}
+
+.tu-onboard-theme:hover { border-color: var(--accent); }
+
+.tu-onboard-theme--active {
+  border-color: var(--accent);
+  background: var(--list-hover);
+}
+
+.tu-onboard-theme-icon { font-size: 1.5rem; margin-bottom: 4px; }
+.tu-onboard-theme-name { font-size: 0.78rem; font-weight: 600; color: var(--text); }
+.tu-onboard-theme-desc { font-size: 0.62rem; color: var(--text-3); margin-top: 2px; }
+
+.tu-onboard-go {
+  display: block;
+  width: calc(100% - 3rem);
+  margin: 0 1.5rem 1.5rem;
+  padding: 10px;
+  border-radius: var(--r-md);
+  border: none;
+  background: var(--button-bg);
+  color: var(--button-fg);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--t);
+}
+
+.tu-onboard-go:hover { background: var(--button-hover); }
+.tu-onboard-go:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Sidebar (within sidebar) ─────────────────────── */
+.tu-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tu-sidebar-section {
+  padding: 8px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.tu-sidebar-title {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+  margin-bottom: 6px;
+}
+
+.tu-sidebar-tool {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all var(--t);
+  font-size: 0.72rem;
+  color: var(--text-2);
+}
+
+.tu-sidebar-tool:hover {
+  background: var(--list-hover);
+  color: var(--text);
+}
+
+.tu-sidebar-tool-icon {
+  font-size: 0.68rem;
+  font-family: var(--font-mono);
+}
+
+/* ── Activity Feed ─────────────────────────────────── */
+.tu-activity-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+  font-size: 0.68rem;
+  color: var(--text-3);
+  border-bottom: 1px solid var(--border);
+}
+.tu-activity-item:last-child { border-bottom: none; }
+.tu-activity-op { font-weight: 600; color: var(--text-2); }
+.tu-activity-time { margin-left: auto; font-size: 0.58rem; }
+
+/* ── Achievement Grid ──────────────────────────────── */
+.tu-achieve-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+
+.tu-achieve-badge {
+  width: 100%;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  font-size: 1rem;
+}
+
+.tu-achieve-badge--locked {
+  opacity: 0.15;
+  filter: grayscale(1);
+}
+
+.tu-achieve-badge--unlocked {
+  background: rgba(0,122,204,0.08);
+  border-color: rgba(0,122,204,0.3);
+}
+
+/* ── Floating Theme Palette ──────────────────────── */
+.tu-theme-palette {
+  position: fixed;
+  bottom: 30px;
+  right: 16px;
+  z-index: 9000;
+}
+
+.tu-theme-palette-trigger {
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  transition: border-color var(--t);
+}
+
+.tu-theme-palette-trigger:hover {
+  border-color: var(--accent);
+}
+
+.tu-theme-palette-popup {
+  position: absolute;
+  bottom: 44px;
+  right: 0;
+  width: 220px;
+  padding: 10px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.tu-theme-palette-title {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.tu-theme-palette-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.tu-theme-palette-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 6px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  cursor: pointer;
+  transition: all var(--t);
+}
+
+.tu-theme-palette-card:hover { border-color: var(--accent); }
+
+.tu-theme-palette-card--active {
+  border-color: var(--accent);
+  background: var(--list-hover);
+}
+
+.tu-theme-palette-card-icon { font-size: 1.1rem; }
+.tu-theme-palette-card-label { font-size: 0.68rem; font-weight: 600; color: var(--text); }
+.tu-theme-palette-card-desc { font-size: 0.55rem; color: var(--text-3); }
+
+.tu-theme-palette-card-check {
+  position: absolute;
+  top: 3px;
+  right: 5px;
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* ── Status Quest (in status bar) ─────────────────── */
+.tu-forge-quest {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tu-forge-stats-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.tu-forge-stats-row b {
+  color: inherit;
+}
+
+.tu-status-quest--done {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.tu-progress-bar {
+  width: 80px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--xp-bar-bg);
+  overflow: hidden;
+}
+
+.tu-progress-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--accent);
+  transition: width 0.6s ease;
+}
+
+@media (max-width: 768px) {
+  .tu-theme-palette {
+    bottom: 12px;
+    right: 12px;
+  }
+  .tu-suggestions {
+    padding: 4px 8px;
+  }
+}

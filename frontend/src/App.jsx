@@ -5,28 +5,33 @@ import Home from './pages/Home';
 import AboutPage from './pages/AboutPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
-import GoogleCallbackPage from './pages/GoogleCallbackPage';
+import OnboardingModal from './components/OnboardingModal';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useAlert } from './hooks/useAlert';
 import { useTheme } from './hooks/useTheme';
 import { useAuth } from './hooks/useAuth';
+import useGamification from './hooks/useGamification';
 import { ROUTES, APP_NAME } from './constants';
 
 function App() {
   const { alert, showAlert } = useAlert();
-  const { mode, toggleMode } = useTheme(showAlert);
+  const { mode, setMode } = useTheme(showAlert);
   const { user, isAuthenticated } = useAuth();
+  const gamification = useGamification();
+
+  const handleOnboardingComplete = (persona) => {
+    gamification.setPersona(persona);
+  };
 
   return (
     <Router>
+      {!gamification.onboarded && (
+        <OnboardingModal onComplete={handleOnboardingComplete} />
+      )}
+
       <Navbar
         title={APP_NAME}
-        home="Home"
-        about="About Us"
-        mode={mode}
-        toggleMode={toggleMode}
-        user={user}
-        isAuthenticated={isAuthenticated}
+        gamification={gamification}
         showAlert={showAlert}
       />
       <Alert alert={alert} />
@@ -34,7 +39,7 @@ function App() {
         <Route
           exact
           path={ROUTES.HOME}
-          element={<Home mode={mode} showAlert={showAlert} />}
+          element={<Home mode={mode} setMode={setMode} showAlert={showAlert} gamification={gamification} user={user} isAuthenticated={isAuthenticated} />}
         />
         <Route
           exact
@@ -48,10 +53,6 @@ function App() {
         <Route
           path={ROUTES.SIGNUP}
           element={<SignupPage showAlert={showAlert} />}
-        />
-        <Route
-          path={ROUTES.GOOGLE_CALLBACK}
-          element={<GoogleCallbackPage showAlert={showAlert} />}
         />
       </Routes>
     </Router>

@@ -4,7 +4,8 @@
 body {
   background-color: var(--bg);
   color: var(--text);
-  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-  transition: background-color 0.35s ease, color 0.35s ease;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
   min-height: 100vh;
+  overflow: hidden;
 }

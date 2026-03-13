@@ -45,8 +45,20 @@ export default function useTemplates(text, setText, showAlert) {
         showAlert(`Template "${name}" deleted`, 'success')
     }
 
+    const saveDirectly = (name, content) => {
+        if (!name || !content) return
+        const exists = templates.findIndex(t => t.name === name)
+        if (exists >= 0) {
+            setTemplates(prev => prev.map((t, i) => i === exists ? { ...t, text: content, updatedAt: Date.now() } : t))
+            showAlert(`Template "${name}" updated`, 'success')
+        } else {
+            setTemplates(prev => [...prev, { name, text: content, createdAt: Date.now(), updatedAt: Date.now() }])
+            showAlert(`Template "${name}" saved`, 'success')
+        }
+    }
+
     return {
         templates, templateName, setTemplateName,
-        handleSaveTemplate, handleLoadTemplate, handleDeleteTemplate,
+        handleSaveTemplate, handleLoadTemplate, handleDeleteTemplate, saveDirectly,
     }
 }

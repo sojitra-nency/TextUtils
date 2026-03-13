@@ -17,10 +17,7 @@ const authSlice = createSlice({
     builder.addMatcher(authApi.endpoints.register.matchFulfilled, (state, { payload }) => {
       state.accessToken = payload.access_token
     })
-    builder.addMatcher(authApi.endpoints.googleAuth.matchFulfilled, (state, { payload }) => {
-      state.accessToken = payload.access_token
-    })
-    builder.addMatcher(authApi.endpoints.refresh.matchFulfilled, (state, { payload }) => {
+builder.addMatcher(authApi.endpoints.refresh.matchFulfilled, (state, { payload }) => {
       state.accessToken = payload.access_token
     })
     builder.addMatcher(authApi.endpoints.getMe.matchFulfilled, (state, { payload }) => {
