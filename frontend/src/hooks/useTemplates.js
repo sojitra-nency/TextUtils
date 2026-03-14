@@ -17,7 +17,10 @@ export default function useTemplates(text, setText, showAlert) {
     const [templates, setTemplates] = useState(loadTemplates)
     const [templateName, setTemplateName] = useState('')
 
-    useEffect(() => { saveTemplates(templates) }, [templates])
+    useEffect(() => {
+        const timer = setTimeout(() => saveTemplates(templates), 500)
+        return () => clearTimeout(timer)
+    }, [templates])
 
     const handleSaveTemplate = () => {
         const name = templateName.trim()

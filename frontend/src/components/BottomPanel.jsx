@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, memo } from 'react'
 import PipelineStrip from './PipelineStrip'
 
 function timeAgo(ts) {
@@ -20,7 +20,7 @@ const TABS = [
     { id: 'stats',    label: 'Stats Dashboard', icon: '☷' },
 ]
 
-export default function BottomPanel({
+export default memo(function BottomPanel({
     pipeline, history, text, gamification, style,
 }) {
     const [activeTab, setActiveTab] = useState('pipeline')
@@ -294,4 +294,4 @@ export default function BottomPanel({
             )}
         </div>
     )
-}
+})

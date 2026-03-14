@@ -5,4 +5,14 @@ export default defineConfig({
   plugins: [react()],
   server: { port: 3000, host: true },
   preview: { port: 3000 },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-export': ['jspdf', 'docx', 'html2canvas'],
+          'vendor-format': ['prettier'],
+        },
+      },
+    },
+  },
 })

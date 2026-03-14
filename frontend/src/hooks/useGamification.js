@@ -3,6 +3,10 @@ import { TOOLS, ACHIEVEMENTS, QUEST_TEMPLATES, LEVELS } from '../constants/tools
 
 const STORAGE_KEY = 'fmx_gamification'
 
+// Pre-compute static tool ID sets (TOOLS never changes)
+const AI_TOOL_IDS = TOOLS.filter(t => t.tabs?.includes('ai')).map(t => t.id)
+const DEV_TOOL_IDS = TOOLS.filter(t => t.tabs?.includes('code')).map(t => t.id)
+
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
@@ -59,10 +63,13 @@ export default function useGamification() {
   const [newAchievement, setNewAchievement] = useState(null)
   const [xpGain, setXpGain] = useState(null)
 
-  // Persist to localStorage on state change (debounced)
+  // Persist to localStorage on state change (debounced to avoid excessive writes)
   useEffect(() => {
-    const { sessionOps, ...persistable } = state
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(persistable))
+    const timer = setTimeout(() => {
+      const { sessionOps, ...persistable } = state
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(persistable))
+    }, 500)
+    return () => clearTimeout(timer)
   }, [state])
 
   // Check streak on mount
@@ -134,8 +141,6 @@ export default function useGamification() {
       }
 
       // Build achievement check state
-      const aiToolIds = TOOLS.filter(t => t.tabs?.includes('ai')).map(t => t.id)
-      const devToolIds = TOOLS.filter(t => t.tabs?.includes('code')).map(t => t.id)
       const translateOpts = TOOLS.find(t => t.id === 'translate')?.options || []
       const langCount = translateOpts.filter(([v]) => toolsUsed['translate'] && prev.discoveredTools.includes('translate')).length
 
@@ -144,8 +149,8 @@ export default function useGamification() {
         discoveredTools,
         sessionOps: sessionOps.length,
         speedCount: speedTimestamps.current.length,
-        aiToolsUsed: discoveredTools.filter(id => aiToolIds.includes(id)).length,
-        devToolsUsed: discoveredTools.filter(id => devToolIds.includes(id)).length,
+        aiToolsUsed: discoveredTools.filter(id => AI_TOOL_IDS.includes(id)).length,
+        devToolsUsed: discoveredTools.filter(id => DEV_TOOL_IDS.includes(id)).length,
         languagesUsed: langCount,
         streak: streak.current,
         totalChars,

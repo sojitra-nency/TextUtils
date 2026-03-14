@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTransformTextMutation } from '../store/api/textApi'
 import { useLogoutMutation } from '../store/api/authApi'
@@ -41,6 +41,30 @@ import CommandPalette from './CommandPalette'
 import AchievementToast from './AchievementToast'
 
 import { motion, AnimatePresence } from 'framer-motion'
+
+// SVG icons for activity bar (module-level constant — avoids recreation on every render)
+const ACTIVITY_ICONS = {
+    popular: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 12c2-2.96 0-7-1-8 0 3.038-1.773 4.741-3 6-1.226 1.26-2 3.24-2 5a6 6 0 1 0 12 0c0-1.532-1.056-3.94-2-5-1.786 3-2.791 3-4 2z"/></svg>,
+    writing: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>,
+    transform: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>,
+    code: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>,
+    ai: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a4 4 0 0 1 4 4v2a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/><path d="M16 14H8a4 4 0 0 0-4 4v2h16v-2a4 4 0 0 0-4-4z"/><circle cx="9" cy="6.5" r="0.8" fill="currentColor" stroke="none"/><circle cx="15" cy="6.5" r="0.8" fill="currentColor" stroke="none"/></svg>,
+    language: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
+    encode: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
+    export: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
+}
+
+// Drawer panel metadata (static — no need to recreate per render)
+const DRAWERS = {
+    find:     { title: 'Find & Replace',       color: 'teal' },
+    compare:  { title: 'Text Compare',         color: 'purple' },
+    randtext: { title: 'Random Text Generator', color: 'amber' },
+    password: { title: 'Password Generator',    color: 'amber' },
+    fmt:      { title: 'Formatter Settings',    color: 'slate' },
+    regex:    { title: 'Regex Tester',           color: 'teal' },
+    templates:{ title: 'Text Templates',          color: 'amber' },
+    history:  { title: 'History / Undo',          color: 'slate' },
+}
 
 export default function TextForm(props) {
     const [text, setText] = useState('')
@@ -93,6 +117,7 @@ export default function TextForm(props) {
 
     // Resizable panels
     const splitRef = useRef(null)
+    const gutterRef = useRef(null)
     const sidebarResize = useResize('horizontal', 240, { min: 160, max: 480, storageKey: 'fmx_sidebar_w' })
     const splitResize = useResize('horizontal', 50, { min: 20, max: 80, storageKey: 'fmx_split_pct', unit: 'percent', containerRef: splitRef })
     const bottomResize = useResize('vertical', 200, { min: 80, max: 500, storageKey: 'fmx_bottom_h' })
@@ -293,7 +318,7 @@ export default function TextForm(props) {
     }
 
     // ── Handler Map (for data-driven tool dispatch) ─────────
-    const handlerMap = {
+    const handlerMap = useMemo(() => ({
         handleBase64Encode, handleBase64Decode,
         handleUrlEncode, handleUrlDecode,
         handleHexEncode, handleHexDecode,
@@ -339,7 +364,7 @@ export default function TextForm(props) {
         handleDownloadDocx:  exportTools.handleDownloadDocx,
         handleDownloadJson:  exportTools.handleDownloadJson,
         handleWordFrequency: wordFreq.handleWordFrequency,
-    }
+    }), [callApi, ai, formatter, exportTools, wordFreq, handleBase64Encode, handleBase64Decode, handleUrlEncode, handleUrlDecode, handleHexEncode, handleHexDecode, handleMorseEncode, handleMorseDecode, handleMd5, handleSha256, handleJsonEscape, handleJsonUnescape, handleHtmlEscape, handleHtmlUnescape, handleJsonFormat, handleJsonToYaml, handleCsvToJson, handleJsonToCsv, handleJwtDecode, handleMarkdownMode])
 
     // ── Open a tool as a workspace tab ──────────────────────
     const openToolTab = useCallback((tool) => {
@@ -409,23 +434,13 @@ export default function TextForm(props) {
 
     // ── Derived stats ───────────────────────────────────────
     const disabled = text.length === 0 || loading
-    const words         = text.split(/\s+/).filter(Boolean).length
-    const chars         = text.length
-    const sentences     = text.split(/[.?]\s*(?=\S|$)|\n/).filter(s => s.trim()).length
+    const { words, chars, sentences } = useMemo(() => ({
+        words: text.split(/\s+/).filter(Boolean).length,
+        chars: text.length,
+        sentences: text.split(/[.?]\s*(?=\S|$)|\n/).filter(s => s.trim()).length,
+    }), [text])
 
     const togglePanel = (panel) => setActivePanel(prev => prev === panel ? null : panel)
-
-    // ── Drawer panels ───────────────────────────────────────
-    const DRAWERS = {
-        find:     { title: 'Find & Replace',       color: 'teal' },
-        compare:  { title: 'Text Compare',         color: 'purple' },
-        randtext: { title: 'Random Text Generator', color: 'amber' },
-        password: { title: 'Password Generator',    color: 'amber' },
-        fmt:      { title: 'Formatter Settings',    color: 'slate' },
-        regex:    { title: 'Regex Tester',           color: 'teal' },
-        templates:{ title: 'Text Templates',          color: 'amber' },
-        history:  { title: 'History / Undo',          color: 'slate' },
-    }
 
     const renderDrawerContent = () => {
         switch (activePanel) {
@@ -462,18 +477,6 @@ export default function TextForm(props) {
         }
     }
 
-    // SVG icons for activity bar (monochrome, VSCode-style)
-    const activityIcons = {
-        popular: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 12c2-2.96 0-7-1-8 0 3.038-1.773 4.741-3 6-1.226 1.26-2 3.24-2 5a6 6 0 1 0 12 0c0-1.532-1.056-3.94-2-5-1.786 3-2.791 3-4 2z"/></svg>,
-        writing: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>,
-        transform: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>,
-        code: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>,
-        ai: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a4 4 0 0 1 4 4v2a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/><path d="M16 14H8a4 4 0 0 0-4 4v2h16v-2a4 4 0 0 0-4-4z"/><circle cx="9" cy="6.5" r="0.8" fill="currentColor" stroke="none"/><circle cx="15" cy="6.5" r="0.8" fill="currentColor" stroke="none"/></svg>,
-        language: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
-        encode: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
-        export: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
-    }
-
     return (
         <>
         <div
@@ -489,7 +492,7 @@ export default function TextForm(props) {
                         onClick={() => handleActivityClick(tab.id)}
                         data-tooltip={tab.label}
                     >
-                        {activityIcons[tab.id] || <span>{tab.icon}</span>}
+                        {ACTIVITY_ICONS[tab.id] || <span>{tab.icon}</span>}
                     </button>
                 ))}
                 {/* Favourites */}
@@ -822,7 +825,7 @@ export default function TextForm(props) {
                             </button>
                         </div>
                         <div className="tu-editor-body">
-                            <div className="tu-line-numbers" id="input-gutter">
+                            <div className="tu-line-numbers" ref={gutterRef}>
                                 {(text || '\n').split('\n').map((_, i) => (
                                     <span key={i}>{i + 1}</span>
                                 ))}
@@ -836,8 +839,7 @@ export default function TextForm(props) {
                                     if (previewMode === 'result') { ai.handleAiDismiss(); setPreviewMode(null) }
                                 }}
                                 onScroll={e => {
-                                    const gutter = document.getElementById('input-gutter')
-                                    if (gutter) gutter.scrollTop = e.target.scrollTop
+                                    if (gutterRef.current) gutterRef.current.scrollTop = e.target.scrollTop
                                 }}
                                 placeholder="// Start typing or paste your text here..."
                                 style={{ tabSize: formatter.fmtCfg.tabWidth, MozTabSize: formatter.fmtCfg.tabWidth }}

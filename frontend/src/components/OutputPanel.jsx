@@ -1,6 +1,7 @@
+import { memo, useMemo } from 'react'
 import { marked } from 'marked'
 
-export default function OutputPanel({
+export default memo(function OutputPanel({
   aiResult, hasMarkdown, onAiAccept, onAiDismiss,
   previewMode, setPreviewMode, showAlert,
   text, dyslexiaMode, markdownMode,
@@ -16,10 +17,12 @@ export default function OutputPanel({
   const outputText = showResult ? aiResult.result : showDyslexia || showMarkdown ? text : ''
   const hasContent = showResult || showDyslexia || showMarkdown
 
-  // Stats for output text
-  const words = outputText ? outputText.split(/\s+/).filter(Boolean).length : 0
-  const chars = outputText ? outputText.length : 0
-  const sentences = outputText ? outputText.split(/[.?]\s*(?=\S|$)|\n/).filter(s => s.trim()).length : 0
+  // Stats for output text (memoized to avoid recomputing on every render)
+  const { words, chars, sentences } = useMemo(() => ({
+    words: outputText ? outputText.split(/\s+/).filter(Boolean).length : 0,
+    chars: outputText ? outputText.length : 0,
+    sentences: outputText ? outputText.split(/[.?]\s*(?=\S|$)|\n/).filter(s => s.trim()).length : 0,
+  }), [outputText])
 
   const handleCopy = () => {
     if (!outputText) return
@@ -123,4 +126,4 @@ export default function OutputPanel({
       </div>
     </div>
   )
-}
+})

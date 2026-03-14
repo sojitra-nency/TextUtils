@@ -38,7 +38,7 @@ export default function useSmartSuggestions(text) {
   }, [text, dismissed])
 
   const dismiss = (toolId) => {
-    setDismissed(prev => new Set([...prev, toolId]))
+    setDismissed(prev => new Set(prev).add(toolId))
   }
 
   const clearDismissed = () => setDismissed(new Set())

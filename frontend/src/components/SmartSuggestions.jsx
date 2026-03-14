@@ -1,6 +1,7 @@
+import { memo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-export default function SmartSuggestions({ suggestions, onToolClick, onDismiss }) {
+export default memo(function SmartSuggestions({ suggestions, onToolClick, onDismiss }) {
   if (!suggestions || suggestions.length === 0) return null
 
   return (
@@ -31,4 +32,4 @@ export default function SmartSuggestions({ suggestions, onToolClick, onDismiss }
       </AnimatePresence>
     </div>
   )
-}
+})

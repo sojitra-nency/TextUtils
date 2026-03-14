@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo } from 'react'
+import { useState, useRef, useCallback, useMemo, memo } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { USE_CASE_TABS } from '../constants/tools'
@@ -70,7 +70,7 @@ function ToolPanelItem({ tool, disabled, onClick, isDiscovered, isFavorite, onTo
   )
 }
 
-export default function ToolPanel({
+export default memo(function ToolPanel({
   tools, activeTab, onTabChange, onToolClick,
   disabled, gamification, activePanel, togglePanel, ai,
   hideTabs,
@@ -168,4 +168,4 @@ export default function ToolPanel({
       )}
     </div>
   )
-}
+})
