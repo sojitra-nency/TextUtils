@@ -72,7 +72,7 @@ function ToolPanelItem({ tool, disabled, onClick, isDiscovered, isFavorite, onTo
 
 export default memo(function ToolPanel({
   tools, activeTab, onTabChange, onToolClick,
-  disabled, gamification, activePanel, togglePanel, ai,
+  disabled, gamification, activePanel, ai,
   hideTabs,
 }) {
   const [tooltip, setTooltip] = useState(null)
@@ -139,10 +139,7 @@ export default memo(function ToolPanel({
                 key={tool.id}
                 tool={tool}
                 disabled={disabled}
-                onClick={() => {
-                  if (tool.type === 'drawer') togglePanel(tool.panelId)
-                  else onToolClick(tool)
-                }}
+                onClick={() => onToolClick(tool)}
                 isDiscovered={gamification?.discoveredTools?.includes(tool.id)}
                 isFavorite={gamification?.favorites?.includes(tool.id)}
                 onToggleFavorite={gamification?.toggleFavorite}

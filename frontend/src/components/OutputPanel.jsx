@@ -6,6 +6,7 @@ export default memo(function OutputPanel({
   previewMode, setPreviewMode, showAlert,
   text, dyslexiaMode, markdownMode,
   speech, onDyslexiaToggle,
+  activeTool, loading,
 }) {
   const handleAccept = () => { onAiAccept(); setPreviewMode(null) }
 
@@ -59,9 +60,18 @@ export default memo(function OutputPanel({
           </div>
         </div>
         <div className="tu-output-empty">
-          <span className="tu-output-empty-icon">⚡</span>
-          <span>Select a tool to transform your text</span>
-          <span className="tu-output-empty-hint">Results will appear here</span>
+          {loading ? (
+            <>
+              <div className="tu-spinner" style={{ width: 24, height: 24 }} />
+              <span>Processing...</span>
+            </>
+          ) : (
+            <>
+              <span className="tu-output-empty-icon">⚡</span>
+              <span>{activeTool ? 'Start typing — output updates automatically' : 'Select a tool to get started'}</span>
+              <span className="tu-output-empty-hint">Results will appear here</span>
+            </>
+          )}
         </div>
       </div>
     )

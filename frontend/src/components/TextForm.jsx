@@ -67,7 +67,7 @@ const DRAWERS = {
 }
 
 export default function TextForm(props) {
-    const [text, setText] = useState('')
+    const [toolTexts, setToolTexts] = useState({})
     const [dyslexiaMode, setDyslexiaMode] = useState(false)
     const [markdownMode, setMarkdownMode] = useState(false)
     const [activePanel, setActivePanel] = useState(null)
@@ -78,6 +78,26 @@ export default function TextForm(props) {
     const [workspaceTabs, setWorkspaceTabs] = useState([])
     const [activeWorkspaceId, setActiveWorkspaceId] = useState(null)
     const [toolResults, setToolResults] = useState({})
+    const [savedTabs, setSavedTabs] = useState({})
+    const [saveModal, setSaveModal] = useState(null) // { tabId, defaultName }
+
+    // Per-tool text: derived from the active workspace tab
+    const activeTabIdRef = useRef(null)
+    activeTabIdRef.current = activeWorkspaceId
+    const text = toolTexts[activeWorkspaceId] || ''
+    const setText = useCallback((valOrFn) => {
+        const tabId = activeTabIdRef.current
+        if (!tabId) return
+        setToolTexts(prev => {
+            const oldVal = prev[tabId] || ''
+            const newVal = typeof valOrFn === 'function' ? valOrFn(oldVal) : valOrFn
+            return { ...prev, [tabId]: newVal }
+        })
+        // Mark as unsaved when text changes
+        setSavedTabs(prev => prev[tabId] ? { ...prev, [tabId]: false } : prev)
+    }, [])
+    const sharedTextRef = useRef(null)
+    const pendingAutoRun = useRef(null)
 
     const showAlert = props.showAlert
     const navigate = useNavigate()
@@ -142,15 +162,22 @@ export default function TextForm(props) {
     }, [ai.aiResult, activeWorkspaceId])
 
     const closeWorkspaceTab = (tabId) => {
+        const tab = workspaceTabs.find(t => t.id === tabId)
         setWorkspaceTabs(tabs => {
             const remaining = tabs.filter(t => t.id !== tabId)
             if (activeWorkspaceId === tabId) {
-                setActiveWorkspaceId(remaining.length > 0 ? remaining[remaining.length - 1].id : null)
+                const newActive = remaining.length > 0 ? remaining[remaining.length - 1] : null
+                setActiveWorkspaceId(newActive?.id || null)
+                setActivePanel(newActive?.type === 'drawer' ? newActive.panelId : null)
             }
             return remaining
         })
-        const tab = workspaceTabs.find(t => t.id === tabId)
-        if (tab?.type === 'drawer') setActivePanel(null)
+        // Clean up per-tab text
+        setToolTexts(prev => {
+            const next = { ...prev }
+            delete next[tabId]
+            return next
+        })
         if (tab?.type === 'tool') {
             setToolResults(prev => {
                 const next = { ...prev }
@@ -165,7 +192,7 @@ export default function TextForm(props) {
         const params = new URLSearchParams(window.location.search)
         const shared = params.get('t')
         if (shared) {
-            try { setText(decodeURIComponent(atob(shared))) } catch {}
+            try { sharedTextRef.current = decodeURIComponent(atob(shared)) } catch {}
         }
     }, [])
 
@@ -370,15 +397,24 @@ export default function TextForm(props) {
     const openToolTab = useCallback((tool) => {
         if (!tool) return
         const tabId = `tool-${tool.id}`
+        let isNew = false
         setWorkspaceTabs(tabs => {
-            if (tabs.find(t => t.id === tabId)) {
-                setActiveWorkspaceId(tabId)
-                return tabs
-            }
+            if (tabs.find(t => t.id === tabId)) return tabs
+            isNew = true
             return [...tabs, { id: tabId, label: tool.label, icon: tool.icon, type: 'tool', tool }]
         })
+        // Seed new tab: URL shared text > current tab's text
+        if (isNew) {
+            const seedText = sharedTextRef.current || toolTexts[activeTabIdRef.current] || ''
+            if (sharedTextRef.current) sharedTextRef.current = null
+            if (seedText) {
+                setToolTexts(prev => prev[tabId] ? prev : { ...prev, [tabId]: seedText })
+                // Schedule auto-run after state settles
+                pendingAutoRun.current = tool
+            }
+        }
         setActiveWorkspaceId(tabId)
-    }, [])
+    }, [toolTexts])
 
     // ── Execute a tool (called from ToolView's Run button) ──
     const executeToolAction = useCallback((tool) => {
@@ -411,10 +447,7 @@ export default function TextForm(props) {
         if (tool.type === 'drawer') {
             const tabId = `drawer-${tool.panelId}`
             setWorkspaceTabs(tabs => {
-                if (tabs.find(t => t.id === tabId)) {
-                    setActiveWorkspaceId(tabId)
-                    return tabs
-                }
+                if (tabs.find(t => t.id === tabId)) return tabs
                 return [...tabs, { id: tabId, label: tool.label, icon: tool.icon, type: 'drawer', panelId: tool.panelId }]
             })
             setActiveWorkspaceId(tabId)
@@ -423,14 +456,37 @@ export default function TextForm(props) {
         } else if (tool.type === 'action') {
             executeToolAction(tool)
         } else {
-            const tabId = `tool-${tool.id}`
-            const isNew = !workspaceTabs.find(t => t.id === tabId)
             openToolTab(tool)
-            // Auto-run on first open if there's text
-            if (isNew && text) executeToolAction(tool)
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [openToolTab, executeToolAction, text, workspaceTabs, gamification.recordToolUse])
+    }, [openToolTab, executeToolAction, text, gamification.recordToolUse])
+
+    // ── Auto-run tool on first open (when text was seeded) ──
+    useEffect(() => {
+        if (pendingAutoRun.current && text) {
+            const tool = pendingAutoRun.current
+            pendingAutoRun.current = null
+            setTimeout(() => executeToolAction(tool), 50)
+        }
+    }, [text, activeWorkspaceId, executeToolAction])
+
+    // ── Debounced auto-run: re-run tool 2s after user stops typing ──
+    const lastTextRef = useRef('')
+    useEffect(() => {
+        if (!activeWorkspaceId || !text || loading) return
+        // Find active tool
+        const ws = workspaceTabs.find(t => t.id === activeWorkspaceId)
+        if (!ws || ws.type !== 'tool') return
+        // Skip if text hasn't actually changed (e.g. tab switch)
+        if (text === lastTextRef.current) return
+        lastTextRef.current = text
+
+        const timer = setTimeout(() => {
+            executeToolAction(ws.tool)
+        }, 2000)
+        return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [text, activeWorkspaceId])
 
     // ── Derived stats ───────────────────────────────────────
     const disabled = text.length === 0 || loading
@@ -555,10 +611,9 @@ export default function TextForm(props) {
                         activeTab={activeTab}
                         onTabChange={setActiveTab}
                         onToolClick={handleToolClick}
-                        disabled={disabled}
+                        disabled={loading}
                         gamification={gamification}
                         activePanel={activePanel}
-                        togglePanel={togglePanel}
                         ai={ai}
                         hideTabs
                     />
@@ -579,10 +634,7 @@ export default function TextForm(props) {
                             ) : (
                                 <div className="tu-sidebar-panel-list">
                                     {favTools.map(tool => (
-                                        <div key={tool.id} className="tu-sidebar-panel-item" onClick={() => {
-                                            if (tool.type === 'drawer') togglePanel(tool.panelId)
-                                            else handleToolClick(tool)
-                                        }}>
+                                        <div key={tool.id} className="tu-sidebar-panel-item" onClick={() => handleToolClick(tool)}>
                                             <span className="tu-sidebar-panel-item-icon">{tool.icon}</span>
                                             <span className="tu-sidebar-panel-item-name">{tool.label}</span>
                                             <button
@@ -614,6 +666,7 @@ export default function TextForm(props) {
                                 Save
                             </button>
                         </div>
+
                         {templates.templates.length === 0 ? (
                             <div className="tu-sidebar-panel-empty">No saved templates yet</div>
                         ) : (
@@ -744,7 +797,16 @@ export default function TextForm(props) {
                         >
                             <span className="tu-tab-icon">{tab.icon}</span>
                             <span className="tu-tab-name">{tab.label}</span>
-                            {tab.type === 'tool' && toolResults[tab.tool?.id] && <span className="tu-tab-modified" />}
+                            <button
+                                className="tu-tab-save"
+                                onClick={e => {
+                                    e.stopPropagation()
+                                    setSaveModal({ tabId: tab.id, defaultName: tab.label })
+                                }}
+                                title="Save to templates (Ctrl+S)"
+                            >
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                            </button>
                             <button
                                 className="tu-tab-close"
                                 onClick={e => { e.stopPropagation(); closeWorkspaceTab(tab.id) }}
@@ -753,38 +815,152 @@ export default function TextForm(props) {
                     ))}
                 </div>
 
-                {/* ─── Tool Options Bar (when a tool tab is active) ─── */}
-                {(() => {
-                    const ws = workspaceTabs.find(t => t.id === activeWorkspaceId)
-                    if (ws?.type === 'tool') {
-                        return (
-                            <ToolView
-                                tool={ws.tool}
-                                text={text}
-                                loading={loading}
-                                aiState={ai}
-                                onExecute={executeToolAction}
-                            />
-                        )
-                    }
-                    return null
-                })()}
+                {/* ─── Landing page (no tool selected) ─── */}
+                {!activeWorkspaceId && (
+                    <div className="tu-landing">
+                        <div className="tu-landing-hero">
+                            <h1 className="tu-landing-title">FixMyText</h1>
+                            <p className="tu-landing-subtitle">{TOOLS.length}+ text tools at your fingertips</p>
+                        </div>
 
-                {/* Smart Suggestions */}
-                {suggestions.suggestions.length > 0 && (
-                    <SmartSuggestions
-                        suggestions={suggestions.suggestions}
-                        onToolClick={handleToolClick}
-                        onDismiss={suggestions.dismiss}
-                    />
+                        <div className="tu-landing-columns">
+                            {/* Start */}
+                            <div className="tu-landing-section">
+                                <h3 className="tu-landing-heading">Start</h3>
+                                <button className="tu-landing-link" onClick={() => search.open()}>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                    Search tools...
+                                    <kbd>Ctrl+K</kbd>
+                                </button>
+                                {(() => {
+                                    const quickTools = ['uppercase', 'fix_grammar', 'paraphrase', 'summarize', 'base64_encode']
+                                        .map(id => TOOLS.find(t => t.id === id)).filter(Boolean)
+                                    return quickTools.map(tool => (
+                                        <button key={tool.id} className="tu-landing-link" onClick={() => handleToolClick(tool)}>
+                                            <span className="tu-landing-link-icon">{tool.icon}</span>
+                                            {tool.label}
+                                        </button>
+                                    ))
+                                })()}
+                            </div>
+
+                            {/* How it works */}
+                            <div className="tu-landing-section">
+                                <h3 className="tu-landing-heading">How it works</h3>
+                                <div className="tu-landing-steps">
+                                    <div className="tu-landing-step">
+                                        <span className="tu-landing-step-num">1</span>
+                                        <span>Pick a tool from the sidebar</span>
+                                    </div>
+                                    <div className="tu-landing-step">
+                                        <span className="tu-landing-step-num">2</span>
+                                        <span>Type or paste your text</span>
+                                    </div>
+                                    <div className="tu-landing-step">
+                                        <span className="tu-landing-step-num">3</span>
+                                        <span>Click <b>Run</b> to transform</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Favourites / Recent */}
+                            <div className="tu-landing-section">
+                                <h3 className="tu-landing-heading">
+                                    {(gamification?.favorites?.length > 0) ? 'Favourites' : 'Quick access'}
+                                </h3>
+                                {(gamification?.favorites?.length > 0) ? (
+                                    gamification.favorites.slice(0, 5).map(id => {
+                                        const tool = TOOLS.find(t => t.id === id)
+                                        return tool ? (
+                                            <button key={id} className="tu-landing-link" onClick={() => handleToolClick(tool)}>
+                                                <span className="tu-landing-link-icon">{tool.icon}</span>
+                                                {tool.label}
+                                            </button>
+                                        ) : null
+                                    })
+                                ) : (
+                                    <>
+                                        {['lowercase', 'title_case', 'remove_extra_spaces', 'word_count', 'find_replace']
+                                            .map(id => TOOLS.find(t => t.id === id)).filter(Boolean)
+                                            .map(tool => (
+                                                <button key={tool.id} className="tu-landing-link" onClick={() => handleToolClick(tool)}>
+                                                    <span className="tu-landing-link-icon">{tool.icon}</span>
+                                                    {tool.label}
+                                                </button>
+                                            ))
+                                        }
+                                    </>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Category grid */}
+                        <div className="tu-landing-categories">
+                            <h3 className="tu-landing-heading">Explore categories</h3>
+                            <div className="tu-landing-cat-grid">
+                                {USE_CASE_TABS.filter(t => t.id !== 'popular').map(tab => {
+                                    const count = TOOLS.filter(t => t.tabs?.includes(tab.id)).length
+                                    return (
+                                        <button
+                                            key={tab.id}
+                                            className="tu-landing-cat-card"
+                                            onClick={() => { setActiveTab(tab.id); setSidebarOpen(true) }}
+                                        >
+                                            <span className="tu-landing-cat-icon">
+                                                {ACTIVITY_ICONS[tab.id] || <span>{tab.icon}</span>}
+                                            </span>
+                                            <span className="tu-landing-cat-name">{tab.label}</span>
+                                            <span className="tu-landing-cat-count">{count} tools</span>
+                                        </button>
+                                    )
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Stats + Shortcuts row */}
+                        <div className="tu-landing-bottom">
+                            {/* Your progress */}
+                            <div className="tu-landing-stats">
+                                <h3 className="tu-landing-heading">Your progress</h3>
+                                <div className="tu-landing-stat-grid">
+                                    <div className="tu-landing-stat">
+                                        <span className="tu-landing-stat-val">{gamification?.level?.name || 'Novice'}</span>
+                                        <span className="tu-landing-stat-label">Level</span>
+                                    </div>
+                                    <div className="tu-landing-stat">
+                                        <span className="tu-landing-stat-val">{gamification?.xp || 0}</span>
+                                        <span className="tu-landing-stat-label">XP earned</span>
+                                    </div>
+                                    <div className="tu-landing-stat">
+                                        <span className="tu-landing-stat-val">{gamification?.streak?.current || 0}</span>
+                                        <span className="tu-landing-stat-label">Day streak</span>
+                                    </div>
+                                    <div className="tu-landing-stat">
+                                        <span className="tu-landing-stat-val">{gamification?.discoveredTools?.length || 0}/{TOOLS.length}</span>
+                                        <span className="tu-landing-stat-label">Discovered</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Keyboard shortcuts */}
+                            <div className="tu-landing-shortcuts">
+                                <h3 className="tu-landing-heading">Keyboard shortcuts</h3>
+                                <div className="tu-landing-shortcut-list">
+                                    <div className="tu-landing-shortcut"><kbd>Ctrl</kbd><kbd>K</kbd><span>Command palette</span></div>
+                                    <div className="tu-landing-shortcut"><kbd>Ctrl</kbd><kbd>Enter</kbd><span>Run tool</span></div>
+                                    <div className="tu-landing-shortcut"><kbd>Ctrl</kbd><kbd>B</kbd><span>Toggle sidebar</span></div>
+                                    <div className="tu-landing-shortcut"><kbd>Ctrl</kbd><kbd>W</kbd><span>Close tab</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 )}
 
-                <div ref={splitRef} className="tu-editor-split" style={{ gridTemplateColumns: `${splitResize.size}fr 4px ${100 - splitResize.size}fr` }}>
+                {activeWorkspaceId && <><div ref={splitRef} className="tu-editor-split" style={{ gridTemplateColumns: `${splitResize.size}fr 4px ${100 - splitResize.size}fr` }}>
                     {/* ─── Left: Input (always visible) ─── */}
                     <div className="tu-editor-input">
                         <div className="tu-editor-topbar">
                             <span className="tu-editor-label" title="~/FixMyText/workspace/input.txt">INPUT</span>
-                            {text && <span className="tu-tab-modified" />}
                             <div className="tu-topbar-stats">
                                 <span className="tu-topbar-stat"><b>{words}</b> words</span>
                                 <span className="tu-topbar-stat"><b>{chars}</b> chars</span>
@@ -901,6 +1077,8 @@ export default function TextForm(props) {
                                     showAlert={showAlert} text={text}
                                     dyslexiaMode={dyslexiaMode} markdownMode={markdownMode}
                                     speech={speech} onDyslexiaToggle={handleDyslexiaMode}
+                                    activeTool={ws?.type === 'tool' ? ws.tool : null}
+                                    loading={loading}
                                 />
                             )
                         })()}
@@ -918,6 +1096,15 @@ export default function TextForm(props) {
                     gamification={gamification}
                     style={{ height: bottomResize.size }}
                 />
+
+                {/* Smart Suggestions — status bar style */}
+                {suggestions.suggestions.length > 0 && (
+                    <SmartSuggestions
+                        suggestions={suggestions.suggestions}
+                        onToolClick={handleToolClick}
+                        onDismiss={suggestions.dismiss}
+                    />
+                )}</>}
             </div>
         </div>
 
@@ -991,6 +1178,50 @@ export default function TextForm(props) {
                 </motion.div>
             )}
         </AnimatePresence>
+        {/* Save to Template modal */}
+        {saveModal && (() => {
+            const SaveModal = () => {
+                const [name, setName] = useState(saveModal.defaultName)
+                const inputRef = useRef(null)
+                useEffect(() => { inputRef.current?.focus(); inputRef.current?.select() }, [])
+                const handleSave = () => {
+                    if (!name.trim()) return
+                    templates.saveDirectly(name.trim(), toolTexts[saveModal.tabId] || '')
+                    setSavedTabs(prev => ({ ...prev, [saveModal.tabId]: true }))
+                    setActiveTab('_templates')
+                    setSidebarOpen(true)
+                    setSaveModal(null)
+                }
+                return (
+                    <>
+                        <div className="tu-modal-backdrop" onClick={() => setSaveModal(null)} />
+                        <div className="tu-modal">
+                            <div className="tu-modal-header">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                                <span>Save to Templates</span>
+                            </div>
+                            <div className="tu-modal-body">
+                                <label className="tu-modal-label">Template name</label>
+                                <input
+                                    ref={inputRef}
+                                    className="tu-modal-input"
+                                    value={name}
+                                    onChange={e => setName(e.target.value)}
+                                    onKeyDown={e => { if (e.key === 'Enter') handleSave(); if (e.key === 'Escape') setSaveModal(null) }}
+                                    placeholder="Enter a name..."
+                                />
+                            </div>
+                            <div className="tu-modal-footer">
+                                <button className="tu-modal-btn tu-modal-btn--secondary" onClick={() => setSaveModal(null)}>Cancel</button>
+                                <button className="tu-modal-btn tu-modal-btn--primary" onClick={handleSave} disabled={!name.trim()}>Save</button>
+                            </div>
+                        </div>
+                    </>
+                )
+            }
+            return <SaveModal />
+        })()}
+
         <AchievementToast achievement={gamification.newAchievement} />
         <CommandPalette search={search} onToolClick={handleToolClick} />
         </>
