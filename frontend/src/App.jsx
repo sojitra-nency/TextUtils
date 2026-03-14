@@ -11,7 +11,7 @@ import { useAlert } from './hooks/useAlert';
 import { useTheme } from './hooks/useTheme';
 import { useAuth } from './hooks/useAuth';
 import useGamification from './hooks/useGamification';
-import { ROUTES, APP_NAME } from './constants';
+import { ROUTES } from './constants';
 
 function App() {
   const { alert, showAlert } = useAlert();
@@ -29,11 +29,7 @@ function App() {
         <OnboardingModal onComplete={handleOnboardingComplete} />
       )}
 
-      <Navbar
-        title={APP_NAME}
-        gamification={gamification}
-        showAlert={showAlert}
-      />
+      <Navbar showAlert={showAlert} />
       <Alert alert={alert} />
       <Routes>
         <Route

@@ -123,7 +123,6 @@ export const TOOLS = [
 
   // ──────────────── Utilities ────────────────
   { id: 'templates',     label: 'Templates',       description: 'Start with pre-made text templates',     icon: '📋', color: 'amber',   tabs: ['writing'],              type: 'drawer', panelId: 'templates',  keywords: ['template','preset','starter'] },
-  { id: 'history',       label: 'History',          description: 'View and undo past operations',          icon: '↩',  color: 'gray',    tabs: ['export'],               type: 'drawer', panelId: 'history',    keywords: ['history','undo','past','operations'] },
   { id: 'word_freq',     label: 'Word Freq',       description: 'Analyze word frequency in your text',    icon: 'W#', color: 'purple',   tabs: ['writing'],              type: 'local', handlerKey: 'handleWordFrequency', keywords: ['word','frequency','count','analyze'] },
 
   // ──────────────── Actions ────────────────

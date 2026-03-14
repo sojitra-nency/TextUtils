@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import PropTypes from 'prop-types'
 import { Link } from 'react-router-dom'
 
 export default function Navbar(props) {
@@ -83,10 +82,4 @@ export default function Navbar(props) {
             )}
         </nav>
     )
-}
-
-Navbar.propTypes = {
-    title: PropTypes.string.isRequired,
-    gamification: PropTypes.object,
-    showAlert: PropTypes.func,
 }

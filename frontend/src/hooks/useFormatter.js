@@ -111,8 +111,6 @@ export default function useFormatter(text, setText, setLoading, showAlert) {
         pendingFmtCfg, setPendingFmtCfg,
         setPendingFmt,
         defaultFmtCfg,
-        parserImports,
-        parserLabels,
         handleFormatHtml, handleFormatCss, handleFormatJs, handleFormatTs,
         handleFmtApply,
     }
